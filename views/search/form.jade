@@ -1,0 +1,9 @@
+.container
+  .row
+    .col-3
+      img#logo(src="/img/two-keys.png")
+    .col-9
+      form.shadow#searchForm(action="/s", method="get", role="form")
+        .inputs
+          input#searchBox(name="query", type="text")
+          button#searchButton(type="submit")

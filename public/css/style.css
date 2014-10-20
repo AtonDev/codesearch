@@ -1,0 +1,119 @@
+#logo {
+  height: 40px;
+}
+
+#searchForm {
+  border:solid 2px #B4BFBF;
+  border-radius:1px;
+  height:40px;
+  width:100%;
+  background: white;
+
+}
+
+#searchBox {
+  padding:0;
+  border:none;
+  height: 40px;
+  width:90%;
+  font-size:20px;
+}
+
+#searchButton {
+  background: url("/img/search_icon.png") no-repeat;
+  height:100%;
+  border:none;
+  width:10%;
+  vertical-align: middle;
+}
+
+
+.inputs {
+  padding:0 0 0 4px;
+  height: 40px;
+  width:100%;
+  font-size:1em;
+}
+
+
+.shadow {
+  -moz-box-shadow:    1px 1px 2px 2px #ddd;
+  -webkit-box-shadow: 1px 1px 2px 2px #ddd;
+  box-shadow:         1px 1px 2px 2px #ddd;
+}
+
+
+
+
+.center-block {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#wrap {
+  min-height: 100%;
+  height: auto;
+  margin: 0 auto -60px;
+  padding: 0 0 60px;
+}
+footer {
+  height: 60px;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+html {
+  font-family: sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+.content {
+  margin-top: 40px;
+  margin-bottom: 40px;
+  margin: 40px auto 40px 120px;
+}
+.search {
+  width: 512px;
+}
+.container {
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.row {
+  margin-right: -15px;
+  margin-left: -15px;
+}
+.col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, 
+.col-golden-sm, .col-golden-lg {
+  float: left;
+}
+
+.container:before, .container:after,
+.row:before, .row:after {
+  display: table;
+  content: " ";
+}
+.container:after,
+.row:after {
+  clear: both;
+}
+
+.col-golden-sm { width: 38.19660113%; }
+.col-golden-lg { width: 61.80339887%; }
+.col-12 { width: 100%; }
+.col-11 { width: 91.66666667%; }
+.col-10 { width: 83.33333333%; }
+.col-9 { width: 75%; }
+.col-8 { width: 66.66666667%; }
+.col-7 { width: 58.33333333%; }
+.col-6 { width: 50%; }
+.col-5 { width: 41.66666667%; }
+.col-4 { width: 33.33333333%; }
+.col-3 { width: 25%; }
+.col-2 { width: 16.66666667%; }
+.col-1 { width: 8.33333333%; }
