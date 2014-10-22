@@ -1,5 +1,34 @@
+hr {
+  margin: 20px 0 12px 0;
+}
+
+.snippet {
+  margin: 8px 0 8px 0;
+  font-size: 14px;
+}
+
+.result {
+  margin:10px 0 10px 0;
+  background: #eee;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.result:hover {
+  cursor:pointer;
+  background: #e0e0e0
+}
+
+.dispurl {
+  font-size: 15px;
+  text-align: right;
+  margin-bottom: 0px;
+  font-style:italic;
+  color: #66CD00;
+}
+
 #logo {
-  height: 40px;
+  height: 44px;
 }
 
 #searchForm {

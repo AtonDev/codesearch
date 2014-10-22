@@ -1,4 +1,9 @@
 .container
   .row
     .col-12
-      h1 results
+      each result, index in snippets
+        div(onclick="location.href='#{result.clickurl}'").result
+          p.dispurl= result.dispurl
+          pre.snippet= result.snippet
+          
+          //p= result

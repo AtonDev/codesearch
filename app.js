@@ -1,8 +1,7 @@
 var express = require('express')
-var querystring = require('qs')
 var path = require('path')
 var http = require('http')
-
+var logger = require('morgan')
 var routes = require('./routes')
 
 var app = express()
@@ -15,11 +14,12 @@ app.set('view engine', 'jade')
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(logger('dev'))
 
 // INDEX
 app.get('/', function(req, res){
   //res.send('hello')
-  res.render('search/index')
+  res.render('search/index', {results:[]})
 })
 
 // SEARCH
