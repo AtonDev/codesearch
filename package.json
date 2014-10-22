@@ -10,11 +10,14 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.9.0",
+    "cheerio": "^0.17.0",
     "express": "^4.9.8",
     "htmlparser": "^1.7.7",
+    "htmlparser2": "^3.7.3",
     "jade": "^1.7.0",
     "morgan": "^1.4.0",
     "qs": "^2.2.4",
+    "soupselect": "^0.2.0",
     "yaboss": "^0.1.2"
   }
 }

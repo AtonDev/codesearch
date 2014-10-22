@@ -1,7 +1,7 @@
 var YaBoss = require('yaboss')
 var config = require('../config')
 var http = require('http')
-var htmlparser = require("htmlparser")
+
 
 var ybClient = new YaBoss(config.ybKey, config.ybSecret)
 
@@ -33,8 +33,30 @@ var getDispUrl = function(dispurl) {
 }
 
 
-var snippetFromHtml = function(html) {
-  return 'some snippet'
+var snippetFromHtml = function(url, rawhtml) {
+  var snippet = ''
+  var htmlparser = require('cheerio')
+  $ = htmlparser.load(rawhtml)
+  
+  //the beginning of a painful day
+  snippet = $('pre').first().text()
+  if (url.indexOf('tutorialspoint') > -1) {
+    snippet = $('pre').first().text() + '\n'
+    snippet += $('pre.tryit').text()
+  } else if (url.indexOf('') > -1) {
+
+  } else if (url.indexOf('') > -1) {
+
+  } else if (url.indexOf('') > -1) {
+
+  } else if (url.indexOf('') > -1) {
+
+  } else if (url.indexOf('') > -1) {
+
+  } else {
+    snippet = $('pre').first().text()
+  }
+  return snippet
 }
 
 //public
@@ -68,7 +90,7 @@ var parseResults = function(req, res, next) {
           var snippetItem = {
             clickurl: url
             , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
-            , snippet: snippetFromHtml(collectHtml)
+            , snippet: snippetFromHtml(url, collectHtml)
           }
           previousResp.locals.snippets[count] = snippetItem
           count+=1

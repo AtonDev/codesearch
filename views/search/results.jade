@@ -4,6 +4,7 @@
       each result, index in snippets
         div(onclick="location.href='#{result.clickurl}'").result
           p.dispurl= result.dispurl
-          pre.snippet= result.snippet
+          pre
+            code.snippet= result.snippet
           
           //p= result
