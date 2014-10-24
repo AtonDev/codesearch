@@ -25,7 +25,7 @@ var testresults = [{
 //private
 
 var sanitizeQuery = function(query) {
-  return query
+  return '\"' + query + '\"'
 }
 
 var getDispUrl = function(dispurl) {
@@ -39,20 +39,9 @@ var snippetFromHtml = function(url, rawhtml) {
   $ = htmlparser.load(rawhtml)
   
   //the beginning of a painful day
-  snippet = $('pre').first().text()
   if (url.indexOf('tutorialspoint') > -1) {
     snippet = $('pre').first().text() + '\n'
     snippet += $('pre.tryit').text()
-  } else if (url.indexOf('') > -1) {
-
-  } else if (url.indexOf('') > -1) {
-
-  } else if (url.indexOf('') > -1) {
-
-  } else if (url.indexOf('') > -1) {
-
-  } else if (url.indexOf('') > -1) {
-
   } else {
     snippet = $('pre').first().text()
   }
@@ -64,11 +53,26 @@ var snippetFromHtml = function(url, rawhtml) {
 
 
 var getBossResults = function(req, res, next) {
-  var query = sanitizeQuery(req.query.q )
-  ybClient.searchWeb(query, {count:20}, function(err,dataFound,response) {
-    res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
-    next()
-  })
+  var i, query, variations, cbcount
+  cbcount = 0
+  query = sanitizeQuery(req.query.q )
+  console.log(query)
+  variations = [{q: query, options: {count: 10, sites:'tutorialspoint.com,stackoverflow.com'}}]
+  res.locals.bossdata = []
+  for (i = 0; i < variations.length; i++) {
+    ;(function(resp, index) {
+      ybClient.searchWeb(variations[index].q, variations[index].options, function(err,dataFound,response) {
+        var results = JSON.parse(dataFound).bossresponse.web.results
+        resp.locals.bossdata.push({data: results, url:variations[index].options.url})
+        cbcount += 1
+        if (cbcount >= variations.length) {
+          next()
+        }
+      })
+    })(res, i)
+  }
+
+  
 }
 
 var parseResults = function(req, res, next) {
@@ -89,25 +93,25 @@ var parseResults = function(req, res, next) {
         response.on('end', function handler() {
           var snippetItem = {
             clickurl: url
-            , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
+            , dispurl: getDispUrl(previousResp.locals.bossdata[0].data[index].dispurl)
             , snippet: snippetFromHtml(url, collectHtml)
           }
           previousResp.locals.snippets[count] = snippetItem
           count+=1
-          if (count == 7) { 
+          if (count == 4 ) { 
             next()
           }
         })
         
       })
     } catch (err) {
-      console.log('**ERR*********************')
-      console.log(err)
-      console.log(err.stack)
-      console.log('**END*********************')
+      //console.log('**ERR*********************')
+      //console.log(err)
+      //console.log(err.stack)
+      //console.log('**END*********************')
     }
   }
-  for (var i = 0; i < data.length; i++) { getSnippet(data[i].clickurl, i) }
+  for (var i = 0; i < data[0].data.length; i++) { getSnippet(data[0].data[i].clickurl, i) }
 }
 
 
