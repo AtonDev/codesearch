@@ -3,7 +3,7 @@ var path = require('path')
 var http = require('http')
 var logger = require('morgan')
 var routes = require('./routes')
-
+var server
 var app = express()
 
 
@@ -30,9 +30,9 @@ app.get('/s', routes.search.search)
 
 
 
+server = http.createServer(app)
 
 
-
-http.createServer(app).listen(app.get('port'), function() {
+server.listen(app.get('port'), function() {
   console.log('app listening at port: ' + app.get('port'))
 })

@@ -5,7 +5,7 @@
         each result, index in snippets
           //=JSON.stringify(result)
           div(onclick="location.href='#{result.clickurl}'").result
-            p.dispurl= result.dispurl
+            //p.dispurl= result.dispurl
             if result.info.description != ''
               p.infotext= result.info.description 
             if result.info.syntax != ''

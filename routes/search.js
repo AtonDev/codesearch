@@ -1,10 +1,9 @@
 var YaBoss = require('yaboss')
-var config = require('../config')
 var http = require('http')
 var htmlparser = require('cheerio')
 
 
-var ybClient = new YaBoss(config.ybKey, config.ybSecret)
+var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 
 
 
