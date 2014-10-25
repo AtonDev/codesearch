@@ -5,5 +5,5 @@
     .col-9
       form.shadow#searchForm(action="/s", method="get", role="form")
         .inputs
-          input#searchBox(name="q", type="text", autofocus="true")
+          input#searchBox(name="q", type="text", autofocus="true", value='#{query}')
           button#searchButton(type="submit")

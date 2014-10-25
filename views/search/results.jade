@@ -2,9 +2,28 @@
   .row
     .col-12
       each result, index in snippets
+        //=JSON.stringify(result)
         div(onclick="location.href='#{result.clickurl}'").result
           p.dispurl= result.dispurl
-          pre
-            code.snippet.python= result.snippet
-          
+          if result.info.description != ''
+            p.infotext= result.info.description 
+          if result.info.syntax != ''
+            p.miniheader syntax
+            pre.snippet
+              code= result.info.syntax
+          if result.info.example != ''
+            p.miniheader example
+            pre.snippet
+              code= result.info.example
+          if result.info.gsnippet != ''
+            pre.snippet
+              code= result.info.gsnippet
+          if result.info.qnaQuestion != '' && result.info.qnaSnippet != ''
+            p.miniheader question 
+            p.infotext= result.info.qnaQuestion
+            p.miniheader answer snippet
+            pre.snippet
+              code= result.info.qnaSnippet
+
+
           //p= result

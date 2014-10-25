@@ -8,15 +8,29 @@ hr {
 }
 
 .snippet {
-  margin: 8px 0 8px 0;
   font-size: 14px;
+  margin:0;
+  padding-left:10px;
 }
 
 .result {
   margin:10px 0 10px 0;
   background: #eee;
-  padding: 6px;
+  padding: 12px;
   border-radius: 4px;
+}
+
+.miniheader {
+  margin:20px 0 0 0;
+  text-align: left;
+  font-style:italic;
+  color: #bbbbbb;
+}
+
+.infotext {
+  padding-left:10px;
+  font-style:italic;
+  font-weight:200;
 }
 
 .result:hover {

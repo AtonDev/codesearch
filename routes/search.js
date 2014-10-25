@@ -1,24 +1,11 @@
 var YaBoss = require('yaboss')
 var config = require('../config')
 var http = require('http')
+var htmlparser = require('cheerio')
 
 
 var ybClient = new YaBoss(config.ybKey, config.ybSecret)
 
-//test
-var testresults = [{
-  snippet: "list1 = ['physics', 'chemistry', 1997, 2000];\nlist2 = [1, 2, 3, 4, 5 ];\nlist3 = ['a', 'b', 'c', 'd'];",
-  dispurl: 'www.tutorialspoint.com',
-  clickurl: 'http://www.tutorialspoint.com/python/python_lists.htm'
-}, {
-  snippet: 'recordList = list()',
-  dispurl: 'www.stackoverflow.com',
-  clickurl: 'http://stackoverflow.com/questions/1470446/create-new-list-object-in-python'
-}, {
-  snippet: 'class list([iterable])',
-  dispurl: 'www.docs.python.org',
-  clickurl: 'https://docs.python.org/2/library/functions.html?highlight=list#list'
-}]
 
 
 
@@ -33,19 +20,38 @@ var getDispUrl = function(dispurl) {
 }
 
 
-var snippetFromHtml = function(url, rawhtml) {
-  var snippet = ''
-  var htmlparser = require('cheerio')
+var infoFromHtml = function(url, rawhtml) {
+  var result = {description: '', syntax: '', example: '', gsnippet: '', qnaQuestion: '', qnaSnippet: ''}
+  var headers
   $ = htmlparser.load(rawhtml)
   
   //the beginning of a painful day
   if (url.indexOf('tutorialspoint') > -1) {
-    snippet = $('pre').first().text() + '\n'
-    snippet += $('pre.tryit').text()
+
+    result.gsnippet = $('pre').first().text().trim()
+    headers = $('#middlecol').find('h2')
+    headers.each(function(i, header) {
+      header = $(this)
+      switch(header.text()) {
+        case "Description":
+          result.description = header.next('p').text().trim()
+        case "Syntax":
+          result.syntax = header.nextAll('pre').first().text().trim()
+          result.gsnippet = ''
+        case "Example":
+          result.example = header.nextAll('pre').first().text().trim()
+          result.gsnippet = ''
+      }
+    })
+    console.log(result)
+  } else if (url.indexOf('stackoverflow') > -1) {
+    result.qnaQuestion = $('.question-hyperlink').first().text().trim()
+    result.qnaSnippet = $('.answercell').first().find('pre').first().text().trim()
+
   } else {
-    snippet = $('pre').first().text()
+    result.gsnippet = $('pre').first().text()
   }
-  return snippet
+  return result
 }
 
 //public
@@ -53,24 +59,15 @@ var snippetFromHtml = function(url, rawhtml) {
 
 
 var getBossResults = function(req, res, next) {
-  var i, query, variations, cbcount
-  cbcount = 0
+  var i, query, variations, options
+  res.locals.query = req.query.q
   query = sanitizeQuery(req.query.q )
-  console.log(query)
-  variations = [{q: query, options: {count: 10, sites:'tutorialspoint.com,stackoverflow.com'}}]
-  res.locals.bossdata = []
-  for (i = 0; i < variations.length; i++) {
-    ;(function(resp, index) {
-      ybClient.searchWeb(variations[index].q, variations[index].options, function(err,dataFound,response) {
-        var results = JSON.parse(dataFound).bossresponse.web.results
-        resp.locals.bossdata.push({data: results, url:variations[index].options.url})
-        cbcount += 1
-        if (cbcount >= variations.length) {
-          next()
-        }
-      })
-    })(res, i)
-  }
+  options = {count: 10, sites:'tutorialspoint.com,stackoverflow.com'}
+  ybClient.searchWeb(query, options, function(err,dataFound,response) {
+    res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
+    next()
+  })
+  
 
   
 }
@@ -93,8 +90,8 @@ var parseResults = function(req, res, next) {
         response.on('end', function handler() {
           var snippetItem = {
             clickurl: url
-            , dispurl: getDispUrl(previousResp.locals.bossdata[0].data[index].dispurl)
-            , snippet: snippetFromHtml(url, collectHtml)
+            , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
+            , info: infoFromHtml(url, collectHtml)
           }
           previousResp.locals.snippets[count] = snippetItem
           count+=1
@@ -105,18 +102,18 @@ var parseResults = function(req, res, next) {
         
       })
     } catch (err) {
-      //console.log('**ERR*********************')
-      //console.log(err)
-      //console.log(err.stack)
-      //console.log('**END*********************')
+      console.log('**ERR*********************')
+      console.log(err)
+      console.log(err.stack)
+      console.log('**END*********************')
     }
   }
-  for (var i = 0; i < data[0].data.length; i++) { getSnippet(data[0].data[i].clickurl, i) }
+  for (var i = 0; i < data.length; i++) { getSnippet(data[i].clickurl, i) }
 }
 
 
 var endpoint = function(req, res) {
-  res.render('search/index', {results:testresults} )
+  res.render('search/index', res.locals )
 }
 
 
