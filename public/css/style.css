@@ -3,6 +3,12 @@
   background: none !important;
 }
 
+.tip {
+  color: #999;
+  text-align: center;
+
+}
+
 hr {
   margin: 20px 0 12px 0;
 }
