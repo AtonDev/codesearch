@@ -45,12 +45,26 @@ var infoFromHtml = function(url, rawhtml) {
     console.log(result)
   } else if (url.indexOf('stackoverflow') > -1) {
     result.qnaQuestion = $('.question-hyperlink').first().text().trim()
-    result.qnaSnippet = $('.answercell').first().find('pre').first().text().trim()
+    result.qnaSnippet = $('.answercell').last().find('pre').first().text().trim()
 
   } else {
     result.gsnippet = $('pre').first().text()
   }
-  return result
+
+  //check if some valid info were extracted
+  var validResult = false
+  for (key in result) {
+    if (result[key] != '') {
+      validResult = true
+      break
+    }
+  }
+
+  if (validResult) {
+    return result
+  } else {
+    return null
+  }
 }
 
 //public
@@ -75,9 +89,11 @@ var parseResults = function(req, res, next) {
   var data = res.locals.bossdata
   var snippets = []
   var count = 0
+  var attempts = 0
   var getSnippet
   res.locals.snippets = []
-  getSnippet = function(url, index) {
+  getSnippet = function(url, index, maxAttempts) {
+    attempts += 1
     try {
       http.get(url, function httpResHandler(response) {
         var previousResp = res
@@ -87,14 +103,19 @@ var parseResults = function(req, res, next) {
           collectHtml += body;
         })
         response.on('end', function handler() {
-          var snippetItem = {
-            clickurl: url
-            , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
-            , info: infoFromHtml(url, collectHtml)
+          var info = infoFromHtml(url, collectHtml)
+          if (info != null) {
+            var snippetItem = {
+              clickurl: url
+              , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
+              , info: info
+            }
+
+            previousResp.locals.snippets[count] = snippetItem
+            count+=1
           }
-          previousResp.locals.snippets[count] = snippetItem
-          count+=1
-          if (count == 4 ) { 
+            
+          if (count == 4 || attempts == maxAttempts) { 
             next()
           }
         })
@@ -107,7 +128,8 @@ var parseResults = function(req, res, next) {
       console.log('**END*********************')
     }
   }
-  for (var i = 0; i < data.length; i++) { getSnippet(data[i].clickurl, i) }
+  console.log(data)
+  for (var i = 0; i < data.length; i++) { getSnippet(data[i].clickurl, i, data.length) }
 }
 
 
