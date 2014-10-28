@@ -2,7 +2,9 @@ var express = require('express')
 var path = require('path')
 var http = require('http')
 var logger = require('morgan')
+var timeout = require('connect-timeout')
 var routes = require('./routes')
+var router = express.Router()
 var server
 var app = express()
 
@@ -13,17 +15,27 @@ app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
 
 // Middleware
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(timeout('5s'))
 app.use(logger('dev'))
+app.use(express.static(path.join(__dirname, 'public')))
+app.use(router)
+app.use(function(req, res) { 
+  res.status(404)
+  res.render('errors/404', {title: '404: Page not found'}) 
+})
+app.use(function(err, req, res, next) { 
+  console.error(err)
+  res.status(500)
+  res.render('errors/500', {title: '500: Internal server error'}) 
+ })
 
 // INDEX
-app.get('/', function(req, res){
-  //res.send('hello')
+router.get('/', function(req, res){
   res.render('search/index', {results:[]})
 })
 
 // SEARCH
-app.get('/s', routes.search.search)
+router.get('/s', routes.search.search)
 
 
 

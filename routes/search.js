@@ -119,7 +119,7 @@ var getSnippets = function(req, res, next) {
             count+=1
           }
             
-          if (count == 6 ) { 
+          if (count == 4) { 
             next()
           }
         })
