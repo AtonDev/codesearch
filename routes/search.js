@@ -114,22 +114,18 @@ var getSnippets = function(req, res, next) {
               , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
               , info: info
             }
-
             previousResp.locals.snippets[count] = snippetItem
             count+=1
           }
-            
           if (count == 4) { 
             next()
           }
         })
-        
       })
     } catch (err) {
       console.log('**ERR*********************')
-      console.log(err)
-      console.log(url)
-      //console.log(err.stack)
+      console.error(err)
+      console.error(err.stack)
       console.log('**END*********************')
     }
   }
