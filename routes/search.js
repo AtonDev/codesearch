@@ -73,6 +73,41 @@ var parseInfoFromHtml = function(url, rawhtml) {
   }
 }
 
+
+
+var getSnippet = function(url, index, res, next, maxSnippets) {
+  try {
+    http.get(url, function httpResHandler(response) {
+      response.setEncoding('utf8')
+      var collectHtml = ''
+      response.on('data', function dataHandler(body) {
+        collectHtml += body;
+      })
+      response.on('end', function handler() {
+        var info = parseInfoFromHtml(url, collectHtml)
+        if (info != null) {
+          var snippetItem = {
+            clickurl: url
+            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
+            , info: info
+          }
+          res.locals.snippets[index] = snippetItem
+          res.locals.snippetCount += 1
+        }
+        if (res.locals.snippetCount == maxSnippets) { 
+          next()
+        }
+      })
+    })
+  } catch (err) {
+    console.log('**ERR*********************')
+    console.error(err)
+    console.error(err.stack)
+    console.log('**END*********************')
+  }
+}
+
+
 //public
 
 
@@ -95,49 +130,23 @@ var getSnippets = function(req, res, next) {
   var data = res.locals.bossdata
   var snippets = []
   var count = 0
-  var getSnippet
   res.locals.snippets = []
-  getSnippet = function(url, index) {
-    try {
-      http.get(url, function httpResHandler(response) {
-        var previousResp = res
-        response.setEncoding('utf8')
-        var collectHtml = ''
-        response.on('data', function dataHandler(body) {
-          collectHtml += body;
-        })
-        response.on('end', function handler() {
-          var info = parseInfoFromHtml(url, collectHtml)
-          if (info != null) {
-            var snippetItem = {
-              clickurl: url
-              , dispurl: getDispUrl(previousResp.locals.bossdata[index].dispurl)
-              , info: info
-            }
-            previousResp.locals.snippets[count] = snippetItem
-            count+=1
-          }
-          if (count == 4) { 
-            next()
-          }
-        })
-      })
-    } catch (err) {
-      console.log('**ERR*********************')
-      console.error(err)
-      console.error(err.stack)
-      console.log('**END*********************')
-    }
-  }
+  res.locals.snippetCount = 0
 
   // decide on how many snippets you want from specific url
   for (var i = 0; i < data.length; i++) { 
-    getSnippet(data[i].clickurl, i) 
+    getSnippet(data[i].clickurl, i, res, next, 4 ) 
   }
 }
 
 
-var endpoint = function(req, res) {
+var reorderResults = function(req, res) {
+  for (var i = 0; i < res.locals.snippets.length; i++) {
+    if (res.locals.snippets[i] == null) {         
+      res.locals.snippets.splice(i, 1);
+      i--;
+    }
+  }
   res.render('search/index', res.locals )
 }
 
@@ -146,7 +155,7 @@ var endpoint = function(req, res) {
 
 
 
-exports.search = [getBossResults, getSnippets, endpoint]//getBossResults, getSnippets, endpoint]
+exports.search = [getBossResults, getSnippets, reorderResults]
 
 
 
