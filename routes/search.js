@@ -42,7 +42,6 @@ var parseInfoFromHtml = function(url, rawhtml) {
           result.gsnippet = ''
       }
     })
-    console.log(result)
   } else if (url.indexOf('stackoverflow') > -1) {
     result.qnaQuestion = $('.question-hyperlink').first().text().trim()
     result.qnaSnippet = $('.answercell').first().find('pre').last().text().trim()
@@ -141,12 +140,21 @@ var getSnippets = function(req, res, next) {
 
 
 var reorderResults = function(req, res) {
+  var numberOfEntries = function(snippetItem) {
+    var count = 0
+    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 }}
+    if (snippetItem.info.qnaQuestion != '') { count -= 0.5} 
+    return count
+  }
   for (var i = 0; i < res.locals.snippets.length; i++) {
     if (res.locals.snippets[i] == null) {         
       res.locals.snippets.splice(i, 1);
       i--;
     }
   }
+  res.locals.snippets = res.locals.snippets.sort(function(a, b) {
+    return numberOfEntries(b) - numberOfEntries(a)
+  })
   res.render('search/index', res.locals )
 }
 
