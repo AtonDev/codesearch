@@ -118,7 +118,7 @@ var getBossResults = function(req, res, next) {
   var i, query, variations, options
   res.locals.query = req.query.q
   query = sanitizeQuery(req.query.q )
-  options = {count: 50, sites:'pythonarticles.com,tutorialspoint.com,docs.python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+  options = {count: 50, sites:'pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
   ybClient.searchWeb(query, options, function(err,dataFound,response) {
     res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
     next()
@@ -137,7 +137,7 @@ var getSnippets = function(req, res, next) {
   // decide on how many snippets you want from specific url
   console.log(data.length)
   for (var i = 0; i < data.length; i++) { 
-    getSnippet(data[i].clickurl, i, res, next, 10 ) 
+    getSnippet(data[i].clickurl, i, res, next, 5 ) 
   }
 }
 
