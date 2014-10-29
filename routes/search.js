@@ -1,5 +1,6 @@
 var YaBoss = require('yaboss')
 var http = require('http')
+var https = require('https')
 var htmlparser = require('cheerio')
 
 
@@ -26,7 +27,6 @@ var parseInfoFromHtml = function(url, rawhtml) {
   
   //the beginning of a painful day
   if (url.indexOf('tutorialspoint') > -1) {
-
     result.gsnippet = $('pre').first().text().trim()
     headers = $('#middlecol').find('h2')
     headers.each(function(i, header) {
@@ -47,8 +47,9 @@ var parseInfoFromHtml = function(url, rawhtml) {
     result.qnaSnippet = $('.answercell').first().find('pre').last().text().trim()
 
   } else if (url.indexOf('pythonarticles') > -1) {
-    result.gsnippet = $('pre').first().text()
-    result.gsnippet += $('pre').first().next('pre').text()
+    result.gsnippet = $('.syntax').eq(0).find('pre').text()
+    result.gsnippet += '\n'
+    result.gsnippet += $('.syntax').eq(1).find('pre').text()
   } else {
     result.gsnippet = $('pre').first().text()
   }
@@ -75,8 +76,9 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
 
 var getSnippet = function(url, index, res, next, maxSnippets) {
+  var protocol = (url.indexOf('https') > -1) ? https : http
   try {
-    http.get(url, function httpResHandler(response) {
+    protocol.get(url, function httpResHandler(response) {
       response.setEncoding('utf8')
       var collectHtml = ''
       response.on('data', function dataHandler(body) {
@@ -92,6 +94,7 @@ var getSnippet = function(url, index, res, next, maxSnippets) {
           }
           res.locals.snippets[index] = snippetItem
           res.locals.snippetCount += 1
+          console.log(res.locals.snippetCount)
         }
         if (res.locals.snippetCount == maxSnippets) { 
           next()
@@ -115,12 +118,11 @@ var getBossResults = function(req, res, next) {
   var i, query, variations, options
   res.locals.query = req.query.q
   query = sanitizeQuery(req.query.q )
-  options = {count: 10, sites:'pythonarticles.com,tutorialspoint.com,stackoverflow.com'}
+  options = {count: 50, sites:'pythonarticles.com,tutorialspoint.com,docs.python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
   ybClient.searchWeb(query, options, function(err,dataFound,response) {
     res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
     next()
   })
-  
 
   
 }
@@ -133,8 +135,9 @@ var getSnippets = function(req, res, next) {
   res.locals.snippetCount = 0
 
   // decide on how many snippets you want from specific url
+  console.log(data.length)
   for (var i = 0; i < data.length; i++) { 
-    getSnippet(data[i].clickurl, i, res, next, 4 ) 
+    getSnippet(data[i].clickurl, i, res, next, 10 ) 
   }
 }
 
@@ -143,7 +146,7 @@ var reorderResults = function(req, res) {
   var numberOfEntries = function(snippetItem) {
     var count = 0
     for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 }}
-    if (snippetItem.info.qnaQuestion != '') { count -= 0.5} 
+    if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { count -= 0.5 } 
     return count
   }
   for (var i = 0; i < res.locals.snippets.length; i++) {

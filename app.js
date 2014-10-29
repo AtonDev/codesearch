@@ -15,7 +15,7 @@ app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
 
 // Middleware
-app.use(timeout('5s'))
+app.use(timeout('30s'))
 app.use(logger('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(router)
@@ -51,7 +51,7 @@ server.on('error', function (err) {
 process.on('uncaughtException', function (err) {
   console.error('uncaughtException: ', err.message)
   console.error(err.stack)
-  process.exit(1)
+  //process.exit(1)
 })
 
 server.listen(app.get('port'), function() {
