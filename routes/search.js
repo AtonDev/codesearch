@@ -52,6 +52,10 @@ var parseInfoFromHtml = function(url, rawhtml) {
     result.gsnippet += $('.syntax').eq(1).find('pre').text()
   } else {
     result.gsnippet = $('pre').first().text()
+    if (result.gsnippet.indexOf('>>>') > -1) {
+      result.example = result.gsnippet
+      result.gsnippet = ''
+    }
   }
 
   //check if some valid info were extracted
@@ -159,8 +163,9 @@ var getSnippets = function(req, res, next) {
 var reorderResults = function(req, res) {
   var numberOfEntries = function(snippetItem) {
     var count = 0
-    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 }}
+    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 } }
     if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { count -= 0.5 } 
+    if (snippetItem.info.gsnippet != '') { count -= 0.1 }
     return count
   }
   for (var i = 0; i < res.locals.snippets.length; i++) {
