@@ -1,6 +1,7 @@
 .container
   .row
     .col-12
+      p.tip Tip: Specify the language in your query to get more accurate results.
       if snippets
         each result, index in snippets
           //=JSON.stringify(result)
@@ -25,8 +26,7 @@
               p.miniheader answer snippet
               pre.snippet
                 code= result.info.qnaSnippet
-      else
-        p.tip Tip: Specify the language in your query to get more accurate results.
+        
 
 
             //p= result

@@ -56,6 +56,9 @@ var parseInfoFromHtml = function(url, rawhtml) {
       result.example = result.gsnippet
       result.gsnippet = ''
     }
+    if (url.indexOf('mail.python.org') > -1) {
+      result.gsnippet = ''
+    }
   }
 
   //check if some valid info were extracted
@@ -90,7 +93,6 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
       })
       response.on('end', function handler() {
         res.locals.attempts += 1
-        console.log(res.locals.attempts)
         var info = parseInfoFromHtml(url, collectHtml)
         if (info != null) {
           var snippetItem = {
@@ -118,6 +120,27 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
   }
 }
 
+var removeUnwantedSnippets = function(res) {
+  for (var i = 0; i < res.locals.snippets.length; i++) {
+    if (res.locals.snippets[i] == null) {         
+      res.locals.snippets.splice(i, 1);
+      i--;
+    }
+  }
+}
+
+var reIndexResults = function(res) {
+  var numberOfEntries = function(snippetItem) {
+    var count = 0
+    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 } }
+    if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { count -= 0.5 } 
+    if (snippetItem.info.gsnippet != '') { count -= 0.1 }
+    return count
+  }
+  res.locals.snippets = res.locals.snippets.sort(function(a, b) {
+    return numberOfEntries(b) - numberOfEntries(a)
+  })
+}
 
 //public
 
@@ -127,16 +150,14 @@ var getBossResults = function(req, res, next) {
   var i, query, variations, options
   res.locals.query = req.query.q
   query = sanitizeQuery(req.query.q )
-  options = {count: 50, sites:'pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+  options = {count: 50, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
   ybClient.searchWeb(query, options, function(err,dataFound,response) {
     res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
     if (res.locals.bossdata) {
-      console.log(res.locals.bossdata)
       next()
     } else {
       ybClient.searchWeb(query, {count: 10} ,function(err,data,resp) {
         res.locals.bossdata = JSON.parse(data).bossresponse.web.results
-        console.log(res.locals.bossdata)
         next()
       })
     }
@@ -149,34 +170,35 @@ var getSnippets = function(req, res, next) {
   var data = res.locals.bossdata
   var snippets = []
   var count = 0
+  var stackoverflowCount = 0
+  var tutorialspointCount = 0
   res.locals.snippets = []
   res.locals.attempts = 0
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].clickurl.indexOf('stackoverflow') > -1) {
+      stackoverflowCount += 1
+      if (stackoverflowCount > 2) {
+        data.splice(i, 1)
+        i--
+      }
+    } else if (data[i].clickurl.indexOf('tutorialspoint') > -1) {
+      tutorialspointCount += 1
+      if (tutorialspointCount > 3) {
+        data.splice(i, 1)
+        i--
+      }
+    }
+  }
 
-  // decide on how many snippets you want from specific url
-  console.log(data.length)
-  for (var i = 0; i < data.length; i++) { 
+  for (var i = 0; i < data.length; i++) {
     getSnippet(data[i].clickurl, i, res, next, data.length) 
   }
 }
 
 
 var reorderResults = function(req, res) {
-  var numberOfEntries = function(snippetItem) {
-    var count = 0
-    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 } }
-    if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { count -= 0.5 } 
-    if (snippetItem.info.gsnippet != '') { count -= 0.1 }
-    return count
-  }
-  for (var i = 0; i < res.locals.snippets.length; i++) {
-    if (res.locals.snippets[i] == null) {         
-      res.locals.snippets.splice(i, 1);
-      i--;
-    }
-  }
-  res.locals.snippets = res.locals.snippets.sort(function(a, b) {
-    return numberOfEntries(b) - numberOfEntries(a)
-  })
+  reIndexResults(res)
+  removeUnwantedSnippets(res)
   res.render('search/index', res.locals )
 }
 
