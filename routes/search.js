@@ -12,7 +12,7 @@ var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 //private
 
 var sanitizeQuery = function(query) {
-  return '\"' + query + '\"'
+  return '\"' + query.split('+').join(' ') + '\"'
 }
 
 var getDispUrl = function(dispurl) {
@@ -75,7 +75,7 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
 
 
-var getSnippet = function(url, index, res, next, maxSnippets) {
+var getSnippet = function(url, index, res, next, maxAttempts) {
   var protocol = (url.indexOf('https') > -1) ? https : http
   try {
     protocol.get(url, function httpResHandler(response) {
@@ -85,6 +85,8 @@ var getSnippet = function(url, index, res, next, maxSnippets) {
         collectHtml += body;
       })
       response.on('end', function handler() {
+        res.locals.attempts += 1
+        console.log(res.locals.attempts)
         var info = parseInfoFromHtml(url, collectHtml)
         if (info != null) {
           var snippetItem = {
@@ -93,15 +95,18 @@ var getSnippet = function(url, index, res, next, maxSnippets) {
             , info: info
           }
           res.locals.snippets[index] = snippetItem
-          res.locals.snippetCount += 1
-          console.log(res.locals.snippetCount)
+          
         }
-        if (res.locals.snippetCount == maxSnippets) { 
+        if (res.locals.attempts == maxAttempts) { 
           next()
         }
       })
     })
   } catch (err) {
+    res.locals.attempts += 1
+    if (res.locals.attempts == maxAttempts) { 
+      next()
+    }
     console.log('**ERR*********************')
     console.error(err)
     console.error(err.stack)
@@ -121,7 +126,16 @@ var getBossResults = function(req, res, next) {
   options = {count: 50, sites:'pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
   ybClient.searchWeb(query, options, function(err,dataFound,response) {
     res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
-    next()
+    if (res.locals.bossdata) {
+      console.log(res.locals.bossdata)
+      next()
+    } else {
+      ybClient.searchWeb(query, {count: 10} ,function(err,data,resp) {
+        res.locals.bossdata = JSON.parse(data).bossresponse.web.results
+        console.log(res.locals.bossdata)
+        next()
+      })
+    }
   })
 
   
@@ -132,12 +146,12 @@ var getSnippets = function(req, res, next) {
   var snippets = []
   var count = 0
   res.locals.snippets = []
-  res.locals.snippetCount = 0
+  res.locals.attempts = 0
 
   // decide on how many snippets you want from specific url
   console.log(data.length)
   for (var i = 0; i < data.length; i++) { 
-    getSnippet(data[i].clickurl, i, res, next, 5 ) 
+    getSnippet(data[i].clickurl, i, res, next, data.length) 
   }
 }
 
