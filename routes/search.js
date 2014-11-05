@@ -8,11 +8,111 @@ var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 
 
 
+// PHASE 1: get the collection of urls to extract the info from
 
-//private
+var getBossResults = function(req, res, next) {
+  var query, options, cbCount, data1 = [], data2 = []
+  res.locals.query = req.query.q
+  query = sanitizeQuery(req.query.q )
+  options = {count: 10, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+  cbCount = 0
+
+  ybClient.searchWeb(query, options, function(err,dataFound,response) {
+    data1 = JSON.parse(dataFound).bossresponse.web.results || []
+    removeUnwantedURLs(data1)
+    cbCount += 1
+    if (data1.length > 9) {
+      cbCount -= 1
+      res.locals.bossdata = data1
+      next()
+    } else if (cbCount == 2) {
+      res.locals.bossdata = data1.concat(data2)
+      next()
+    }
+  })
+
+  ybClient.searchWeb(query, {count: 10} ,function(err,dataFound,resp) {
+    data2 = JSON.parse(dataFound).bossresponse.web.results || []
+    cbCount += 1
+    if (cbCount == 2) {
+      res.locals.bossdata = data1.concat(data2)
+      next()
+    }
+  })
+
+  
+}
 
 var sanitizeQuery = function(query) {
   return query.split('+').join(' ')
+}
+
+
+// PHASE 2: extract info from each url
+
+var getSnippets = function(req, res, next) {
+  var data = res.locals.bossdata
+  var snippets = []
+
+  res.locals.snippets = []
+  res.locals.attempts = 0
+
+  data = removeDuplicateElement(data)
+  removeUnwantedURLs(data)
+  console.log('data: ' + data.length)
+
+  for (var i = 0; i < data.length; i++) {
+    getSnippet(data[i].clickurl, i, res, next, data.length) 
+  }
+}
+
+var getSnippet = function(url, index, res, next, maxAttempts) {
+  var protocol = (url.indexOf('https') > -1) ? https : http
+  try {
+    protocol.get(url, function httpResHandler(response) {
+      response.setEncoding('utf8')
+      var collectHtml = ''
+      response.on('data', function dataHandler(body) {
+        collectHtml += body;
+      })
+      response.on('end', function handler() {
+        res.locals.attempts += 1
+        var info = parseInfoFromHtml(url, collectHtml)
+        if (info != null) {
+          var snippetItem = {
+            clickurl: url
+            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
+            , info: info
+            , type: 'snippet'
+          }
+          res.locals.snippets[index] = snippetItem
+          
+        } else {
+          var item = {
+            clickurl: url
+            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
+            , abstract: res.locals.bossdata[index].abstract
+            , title: res.locals.bossdata[index].title
+            , type: 'normal'
+          }
+          res.locals.snippets[index] = item
+        }
+
+        if (res.locals.attempts == maxAttempts) { 
+          next()
+        }
+      })
+    })
+  } catch (err) {
+    res.locals.attempts += 1
+    if (res.locals.attempts == maxAttempts) { 
+      next()
+    }
+    console.log('**ERR*********************')
+    console.error(err)
+    console.error(err.stack)
+    console.log('**END*********************')
+  }
 }
 
 var getDispUrl = function(dispurl) {
@@ -81,62 +181,15 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
 
 
-var getSnippet = function(url, index, res, next, maxAttempts) {
-  var protocol = (url.indexOf('https') > -1) ? https : http
-  try {
-    protocol.get(url, function httpResHandler(response) {
-      response.setEncoding('utf8')
-      var collectHtml = ''
-      response.on('data', function dataHandler(body) {
-        collectHtml += body;
-      })
-      response.on('end', function handler() {
-        res.locals.attempts += 1
-        var info = parseInfoFromHtml(url, collectHtml)
-        if (info != null) {
-          var snippetItem = {
-            clickurl: url
-            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
-            , info: info
-            , type: 'snippet'
-          }
-          res.locals.snippets[index] = snippetItem
-          
-        } else {
-          var item = {
-            clickurl: url
-            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
-            , abstract: res.locals.bossdata[index].abstract
-            , title: res.locals.bossdata[index].title
-            , type: 'normal'
-          }
-          res.locals.snippets[index] = item
-        }
 
-        if (res.locals.attempts == maxAttempts) { 
-          next()
-        }
-      })
-    })
-  } catch (err) {
-    res.locals.attempts += 1
-    if (res.locals.attempts == maxAttempts) { 
-      next()
-    }
-    console.log('**ERR*********************')
-    console.error(err)
-    console.error(err.stack)
-    console.log('**END*********************')
-  }
-}
 
 var removeDuplicateElement = function(arrayName) {
   if (arrayName) {
     var newArray = new Array();
-    label:for(var i = 0; i<arrayName.length;i++ ) {  
-      for(var j = 0; j<newArray.length;j++ ) {
+    label:for(var i = 0; i < arrayName.length; i++ ) {  
+      for(var j = 0; j < newArray.length; j++ ) {
         if(newArray[j].url == arrayName[i].url) 
-          continue label;
+          continue label
       }
       newArray[newArray.length] = arrayName[i];
     }
@@ -167,6 +220,22 @@ var removeUnwantedURLs = function(data) {
   }
 }
 
+
+
+
+
+
+
+
+//PHASE 3: reorder results and remove unwanted snippets
+
+var reorderResults = function(req, res) {
+  reIndexResults(res)
+  removeUnwantedSnippets(res)
+  res.render('search/index', res.locals )
+}
+
+
 var removeUnwantedSnippets = function(res) {
   for (var i = 0; i < res.locals.snippets.length; i++) {
     if (res.locals.snippets[i] == null) {         
@@ -192,69 +261,6 @@ var reIndexResults = function(res) {
     return itemScore(b) - itemScore(a)
   })
 }
-
-//public
-
-
-
-var getBossResults = function(req, res, next) {
-  var query, options, cbCount, data1 = [], data2 = []
-  res.locals.query = req.query.q
-  query = sanitizeQuery(req.query.q )
-  options = {count: 10, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
-  cbCount = 0
-
-  ybClient.searchWeb(query, options, function(err,dataFound,response) {
-    data1 = JSON.parse(dataFound).bossresponse.web.results || []
-    removeUnwantedURLs(data1)
-    cbCount += 1
-    if (data1.length > 9) {
-      cbCount -= 1
-      res.locals.bossdata = data1
-      next()
-    } else if (cbCount == 2) {
-      res.locals.bossdata = data1.concat(data2)
-      next()
-    }
-  })
-
-  ybClient.searchWeb(query, {count: 10} ,function(err,dataFound,resp) {
-    data2 = JSON.parse(dataFound).bossresponse.web.results || []
-    cbCount += 1
-    if (cbCount == 2) {
-      res.locals.bossdata = data1.concat(data2)
-      next()
-    }
-  })
-
-  
-}
-
-var getSnippets = function(req, res, next) {
-  var data = res.locals.bossdata
-  var snippets = []
-
-  res.locals.snippets = []
-  res.locals.attempts = 0
-
-  data = removeDuplicateElement(data)
-  removeUnwantedURLs(data)
-  console.log('data: ' + data.length)
-
-  for (var i = 0; i < data.length; i++) {
-    getSnippet(data[i].clickurl, i, res, next, data.length) 
-  }
-}
-
-
-var reorderResults = function(req, res) {
-  reIndexResults(res)
-  removeUnwantedSnippets(res)
-  res.render('search/index', res.locals )
-}
-
-
-
 
 
 
