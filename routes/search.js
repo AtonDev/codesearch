@@ -78,22 +78,22 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
       response.on('end', function handler() {
         res.locals.attempts += 1
         var info = parseInfoFromHtml(url, collectHtml)
-        if (info != null) {
+        if (info !== null) {
           var snippetItem = {
-            clickurl: url
-            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
-            , info: info
-            , type: 'snippet'
+            clickurl: url,
+            dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+            info: info,
+            type: 'snippet'
           }
           res.locals.snippets[index] = snippetItem
           
         } else {
           var item = {
-            clickurl: url
-            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
-            , abstract: res.locals.bossdata[index].abstract
-            , title: res.locals.bossdata[index].title
-            , type: 'normal'
+            clickurl: url,
+            dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+            abstract: res.locals.bossdata[index].abstract,
+            title: res.locals.bossdata[index].title,
+            type: 'normal'
           }
           res.locals.snippets[index] = item
         }
@@ -133,12 +133,15 @@ var parseInfoFromHtml = function(url, rawhtml) {
       switch(header.text()) {
         case "Description":
           result.description = header.next('p').text().trim()
+          break
         case "Syntax":
           result.syntax = header.nextAll('pre').first().text().trim()
           result.gsnippet = ''
+          break
         case "Example":
           result.example = header.nextAll('pre').first().text().trim()
           result.gsnippet = ''
+          break
       }
     })
   } else if (url.indexOf('stackoverflow') > -1) {
@@ -162,13 +165,13 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
   //check if some valid info were extracted
   var validResult = false
-  for (key in result) {
-    if (result[key] != '') {
+  for (var key in result) {
+    if (result[key] !== '') {
       validResult = true
       break
     }
   }
-  if (result.qnaQuestion != '' && result.qnaSnippet == '') {
+  if (result.qnaQuestion !== '' && result.qnaSnippet === '') {
     validResult = false
   }
 
@@ -185,7 +188,7 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
 var removeDuplicateElement = function(arrayName) {
   if (arrayName) {
-    var newArray = new Array();
+    var newArray = [];
     label:for(var i = 0; i < arrayName.length; i++ ) {  
       for(var j = 0; j < newArray.length; j++ ) {
         if(newArray[j].url == arrayName[i].url) 
@@ -238,7 +241,7 @@ var reorderResults = function(req, res) {
 
 var removeUnwantedSnippets = function(res) {
   for (var i = 0; i < res.locals.snippets.length; i++) {
-    if (res.locals.snippets[i] == null) {         
+    if (res.locals.snippets[i] === null) {         
       res.locals.snippets.splice(i, 1);
       i--;
     }
@@ -250,9 +253,9 @@ var reIndexResults = function(res) {
     var score = 0
     if (snippetItem.type == 'snippet') {
       score += 5
-      for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { score += 1 } }
-      if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { score -= 0.5 } 
-      if (snippetItem.info.gsnippet != '') { score -= 0.1 }
+      for (var key in snippetItem.info) { if (snippetItem.info[key]!== '') { score += 1 } }
+      if (snippetItem.info.qnaQuestion !== '' && snippetItem.info.qnaSnippet !== '') { score -= 0.5 } 
+      if (snippetItem.info.gsnippet !== '') { score -= 0.1 }
     }
     
     return score

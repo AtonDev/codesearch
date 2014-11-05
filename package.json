@@ -8,6 +8,9 @@
   },
   "author": "APG",
   "license": "ISC",
+  "jshintConfig": {
+    "asi": true
+    },
   "dependencies": {
     "body-parser": "^1.9.0",
     "cheerio": "^0.17.0",
