@@ -1,0 +1,2 @@
+-- crashes for 
+python string count no more thatn 4 results
