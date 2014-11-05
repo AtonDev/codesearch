@@ -8,6 +8,10 @@
   },
   "author": "APG",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/pacificoarturo/codesearchnode"
+  },
   "jshintConfig": {
     "asi": true
     },
