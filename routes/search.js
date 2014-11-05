@@ -12,11 +12,11 @@ var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 //private
 
 var sanitizeQuery = function(query) {
-  return '\"' + query.split('+').join(' ') + '\"'
+  return query.split('+').join(' ')
 }
 
 var getDispUrl = function(dispurl) {
-  return dispurl.replace(/<\/?[^>]+(>|$)/g, "").split('/')[0]
+  return dispurl.replace(/<\/?[^>]+(>|$)/g, "")
 }
 
 
@@ -25,7 +25,6 @@ var parseInfoFromHtml = function(url, rawhtml) {
   var headers
   $ = htmlparser.load(rawhtml)
   
-  //the beginning of a painful day
   if (url.indexOf('tutorialspoint') > -1) {
     result.gsnippet = $('pre').first().text().trim()
     headers = $('#middlecol').find('h2')
@@ -47,11 +46,11 @@ var parseInfoFromHtml = function(url, rawhtml) {
     result.qnaSnippet = $('.answercell').first().find('pre').last().text().trim()
 
   } else if (url.indexOf('pythonarticles') > -1) {
-    result.gsnippet = $('.syntax').eq(0).find('pre').text()
+    result.gsnippet = $('.syntax').eq(0).find('pre').text().trim()
     result.gsnippet += '\n'
-    result.gsnippet += $('.syntax').eq(1).find('pre').text()
+    result.gsnippet += $('.syntax').eq(1).find('pre').text().trim()
   } else {
-    result.gsnippet = $('pre').first().text()
+    result.gsnippet = $('pre').first().text().trim()
     if (result.gsnippet.indexOf('>>>') > -1) {
       result.example = result.gsnippet
       result.gsnippet = ''
@@ -99,10 +98,21 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
             clickurl: url
             , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
             , info: info
+            , type: 'snippet'
           }
           res.locals.snippets[index] = snippetItem
           
+        } else {
+          var item = {
+            clickurl: url
+            , dispurl: getDispUrl(res.locals.bossdata[index].dispurl)
+            , abstract: res.locals.bossdata[index].abstract
+            , title: res.locals.bossdata[index].title
+            , type: 'normal'
+          }
+          res.locals.snippets[index] = item
         }
+
         if (res.locals.attempts == maxAttempts) { 
           next()
         }
@@ -120,6 +130,43 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
   }
 }
 
+var removeDuplicateElement = function(arrayName) {
+  if (arrayName) {
+    var newArray = new Array();
+    label:for(var i = 0; i<arrayName.length;i++ ) {  
+      for(var j = 0; j<newArray.length;j++ ) {
+        if(newArray[j].url == arrayName[i].url) 
+          continue label;
+      }
+      newArray[newArray.length] = arrayName[i];
+    }
+    return newArray;
+  }
+}
+
+var removeUnwantedURLs = function(data) {
+  var stackoverflowCount = 0
+  var tutorialspointCount = 0
+  if (data) {
+    //decide on number of results for specific pages
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].clickurl.indexOf('stackoverflow') > -1) {
+        stackoverflowCount += 1
+        if (stackoverflowCount > 2) {
+          data.splice(i, 1)
+          i--
+        }
+      } else if (data[i].clickurl.indexOf('tutorialspoint') > -1) {
+        tutorialspointCount += 1
+        if (tutorialspointCount > 3) {
+          data.splice(i, 1)
+          i--
+        }
+      }
+    }
+  }
+}
+
 var removeUnwantedSnippets = function(res) {
   for (var i = 0; i < res.locals.snippets.length; i++) {
     if (res.locals.snippets[i] == null) {         
@@ -130,15 +177,19 @@ var removeUnwantedSnippets = function(res) {
 }
 
 var reIndexResults = function(res) {
-  var numberOfEntries = function(snippetItem) {
-    var count = 0
-    for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { count += 1 } }
-    if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { count -= 0.5 } 
-    if (snippetItem.info.gsnippet != '') { count -= 0.1 }
-    return count
+  var itemScore = function(snippetItem) {
+    var score = 0
+    if (snippetItem.type == 'snippet') {
+      score += 5
+      for (key in snippetItem.info) { if (snippetItem.info[key]!= '') { score += 1 } }
+      if (snippetItem.info.qnaQuestion != '' && snippetItem.info.qnaSnippet != '') { score -= 0.5 } 
+      if (snippetItem.info.gsnippet != '') { score -= 0.1 }
+    }
+    
+    return score
   }
   res.locals.snippets = res.locals.snippets.sort(function(a, b) {
-    return numberOfEntries(b) - numberOfEntries(a)
+    return itemScore(b) - itemScore(a)
   })
 }
 
@@ -147,19 +198,32 @@ var reIndexResults = function(res) {
 
 
 var getBossResults = function(req, res, next) {
-  var i, query, variations, options
+  var query, options, cbCount, data1 = [], data2 = []
   res.locals.query = req.query.q
   query = sanitizeQuery(req.query.q )
-  options = {count: 50, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+  options = {count: 10, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+  cbCount = 0
+
   ybClient.searchWeb(query, options, function(err,dataFound,response) {
-    res.locals.bossdata = JSON.parse(dataFound).bossresponse.web.results
-    if (res.locals.bossdata) {
+    data1 = JSON.parse(dataFound).bossresponse.web.results || []
+    removeUnwantedURLs(data1)
+    cbCount += 1
+    if (data1.length > 9) {
+      cbCount -= 1
+      res.locals.bossdata = data1
       next()
-    } else {
-      ybClient.searchWeb(query, {count: 10} ,function(err,data,resp) {
-        res.locals.bossdata = JSON.parse(data).bossresponse.web.results
-        next()
-      })
+    } else if (cbCount == 2) {
+      res.locals.bossdata = data1.concat(data2)
+      next()
+    }
+  })
+
+  ybClient.searchWeb(query, {count: 10} ,function(err,dataFound,resp) {
+    data2 = JSON.parse(dataFound).bossresponse.web.results || []
+    cbCount += 1
+    if (cbCount == 2) {
+      res.locals.bossdata = data1.concat(data2)
+      next()
     }
   })
 
@@ -169,26 +233,13 @@ var getBossResults = function(req, res, next) {
 var getSnippets = function(req, res, next) {
   var data = res.locals.bossdata
   var snippets = []
-  var count = 0
-  var stackoverflowCount = 0
-  var tutorialspointCount = 0
+
   res.locals.snippets = []
   res.locals.attempts = 0
-  for (var i = 0; i < data.length; i++) {
-    if (data[i].clickurl.indexOf('stackoverflow') > -1) {
-      stackoverflowCount += 1
-      if (stackoverflowCount > 2) {
-        data.splice(i, 1)
-        i--
-      }
-    } else if (data[i].clickurl.indexOf('tutorialspoint') > -1) {
-      tutorialspointCount += 1
-      if (tutorialspointCount > 3) {
-        data.splice(i, 1)
-        i--
-      }
-    }
-  }
+
+  data = removeDuplicateElement(data)
+  removeUnwantedURLs(data)
+  console.log('data: ' + data.length)
 
   for (var i = 0; i < data.length; i++) {
     getSnippet(data[i].clickurl, i, res, next, data.length) 
