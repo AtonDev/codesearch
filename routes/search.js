@@ -196,15 +196,15 @@ var parseInfoFromHtml = function(url, rawhtml) {
 
 
 
-var removeDuplicateElement = function(arrayName) {
-  if (arrayName) {
+var removeDuplicateElement = function(array) {
+  if (array) {
     var newArray = [];
-    label:for(var i = 0; i < arrayName.length; i++ ) {  
+    label:for(var i = 0; i < array.length; i++ ) {  
       for(var j = 0; j < newArray.length; j++ ) {
-        if(newArray[j].url == arrayName[i].url) 
+        if(newArray[j].url == array[i].url) 
           continue label
       }
-      newArray[newArray.length] = arrayName[i];
+      newArray[newArray.length] = array[i];
     }
     return newArray;
   }
