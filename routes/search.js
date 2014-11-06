@@ -16,6 +16,7 @@ var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
  *  @param {express.Response} res - the response object
  *  @param {callback} next - a reference to the next middleware function
  */
+
 var getBossResults = function(req, res, next) {
   var query, options, cbCount, data1 = [], data2 = []
   query = sanitizeQuery(req.query.q )
@@ -44,13 +45,11 @@ var getBossResults = function(req, res, next) {
       next()
     }
   })
-
-  
 }
 
 /** Returns the sanitized query to be added to the boss API call. 
  *  @param {string} query - the query to be sanitized.
- *  @returns {string} the sanitized query to be used for the boss api call.
+ *  @returns string the sanitized query to be used for the boss api call.
 */
 var sanitizeQuery = function(query) {
   return query.split('+').join(' ')
@@ -95,8 +94,7 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
             info: info,
             type: 'snippet'
           }
-          res.locals.snippets[index] = snippetItem
-          
+          res.locals.snippets[index] = snippetItem   
         } else {
           var item = {
             clickurl: url,
@@ -128,7 +126,6 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
 var getDispUrl = function(dispurl) {
   return dispurl.replace(/<\/?[^>]+(>|$)/g, "")
 }
-
 
 var parseInfoFromHtml = function(url, rawhtml) {
   var result = {description: '', syntax: '', example: '', gsnippet: '', qnaQuestion: '', qnaSnippet: ''}
@@ -192,10 +189,6 @@ var parseInfoFromHtml = function(url, rawhtml) {
   }
 }
 
-
-
-
-
 var removeDuplicateElement = function(array) {
   if (array) {
     var newArray = [];
@@ -233,13 +226,6 @@ var removeUnwantedURLs = function(data) {
   }
 }
 
-
-
-
-
-
-
-
 //PHASE 3: reorder results and remove unwanted snippets
 
 var reorderResults = function(req, res) {
@@ -264,19 +250,24 @@ var reIndexResults = function(res) {
     var score = 0
     if (snippetItem.type == 'snippet') {
       score += 5
-      for (var key in snippetItem.info) { if (snippetItem.info[key]!== '') { score += 1 } }
-      if (snippetItem.info.qnaQuestion !== '' && snippetItem.info.qnaSnippet !== '') { score -= 0.5 } 
-      if (snippetItem.info.gsnippet !== '') { score -= 0.1 }
+      for (var key in snippetItem.info) { 
+        if (snippetItem.info[key]!== '') { 
+          score += 1 
+        } 
+      }
+      if (snippetItem.info.qnaQuestion !== '' && snippetItem.info.qnaSnippet !== '') { 
+        score -= 0.5 
+      } 
+      if (snippetItem.info.gsnippet !== '') { 
+        score -= 0.1 
+      }
     }
-    
     return score
   }
   res.locals.snippets = res.locals.snippets.sort(function(a, b) {
     return itemScore(b) - itemScore(a)
   })
 }
-
-
 
 exports.search = [getBossResults, getSnippets, reorderResults]
 

@@ -13,6 +13,7 @@ var app = express()
 app.set('port', process.env.PORT || 3000)
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 // Middleware
 app.use(timeout('30s'))
@@ -37,6 +38,9 @@ router.get('/', function(req, res){
 
 // SEARCH
 router.get('/s', routes.search.search)
+
+
+
 
 
 
