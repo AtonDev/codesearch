@@ -7,6 +7,41 @@ var htmlparser = require('cheerio')
 var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 
 
+//Simple time profiler
+
+var start = function(res) {
+  res.locals.time = new Date().getTime()
+}
+
+
+var startParallel = function(res) {
+  res.locals.times = []
+}
+
+var startProcess = function(res, index) {
+
+  res.locals.times[index] = {'elapsed':  new Date().getTime()}
+}
+
+var gate = function(processName, res) {
+  var elapsed = (new Date().getTime()) - res.locals.time
+  start(res)
+  console.log(elapsed.toPrecision(4) + ' ms:\t' + processName)
+}
+
+var gateProcess = function(res, index, processName) {
+  var elapsed = (new Date().getTime()) - res.locals.times[index].elapsed
+  res.locals.times[index].elapsed = elapsed
+  res.locals.times[index].processName = processName 
+}
+
+var printParallel = function(res) {
+  for (var i = 0; i < res.locals.times.length; i++) {
+    var elapsed = res.locals.times[i].elapsed
+    var processName = res.locals.times[i].processName || 'undefined'
+    console.log(elapsed.toPrecision(4) + ' ms:\t' + processName.substring(0,50))
+  }
+}
 
 // PHASE 1: get the collection of urls to extract the info from
 
@@ -18,6 +53,10 @@ var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
  */
 
 var getBossResults = function(req, res, next) {
+  //profiling
+  console.log('-----------------------------')
+  start(res)
+  //end profiling
   var query, options, cbCount, data1 = [], data2 = []
   query = sanitizeQuery(req.query.q )
   options = {count: 10, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
@@ -30,9 +69,15 @@ var getBossResults = function(req, res, next) {
     if (data1.length > 9) {
       cbCount -= 1
       res.locals.bossdata = data1
+      //profiling
+      gate('getBossResults - specific sites only', res)
+      //end profiling
       next()
     } else if (cbCount == 2) {
       res.locals.bossdata = data1.concat(data2)
+      //profiling
+      gate('getBossResults - specific sites + general web', res)
+      //end profiling
       next()
     }
   })
@@ -42,6 +87,9 @@ var getBossResults = function(req, res, next) {
     cbCount += 1
     if (cbCount == 2) {
       res.locals.bossdata = data1.concat(data2)
+      //profiling
+      gate('getBossResults - specific sites + general web', res)
+      //end profiling
       next()
     }
   })
@@ -68,14 +116,20 @@ var getSnippets = function(req, res, next) {
 
   data = removeDuplicateElement(data)
   removeUnwantedURLs(data)
-  console.log('data: ' + data.length)
 
+
+  //profiling
+  startParallel(res)
+  //end profiling
   for (var i = 0; i < data.length; i++) {
     getSnippet(data[i].clickurl, i, res, next, data.length) 
   }
 }
 
 var getSnippet = function(url, index, res, next, maxAttempts) {
+  //profiling
+  startProcess(res, index)
+  //end profiling
   var protocol = (url.indexOf('https') > -1) ? https : http
   try {
     protocol.get(url, function httpResHandler(response) {
@@ -85,8 +139,12 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
         collectHtml += body;
       })
       response.on('end', function handler() {
+        //profiling
+        gateProcess(res, index, 'get url - ' + url)
+        //end profiling
         res.locals.attempts += 1
         var info = parseInfoFromHtml(url, collectHtml)
+        
         if (info !== null) {
           var snippetItem = {
             clickurl: url,
@@ -103,10 +161,15 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
             title: res.locals.bossdata[index].title,
             type: 'normal'
           }
+          
           res.locals.snippets[index] = item
         }
+        
 
         if (res.locals.attempts == maxAttempts) { 
+          //profiling
+          gate('getSnippets', res)
+          //end profiling
           next()
         }
       })
@@ -114,6 +177,9 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
   } catch (err) {
     res.locals.attempts += 1
     if (res.locals.attempts == maxAttempts) { 
+      //profiling
+      gate('getSnippets', res)
+      //end profiling
       next()
     }
     console.log('**ERR*********************')
@@ -128,6 +194,10 @@ var getDispUrl = function(dispurl) {
 }
 
 var parseInfoFromHtml = function(url, rawhtml) {
+  //profiling
+  var startTime = new Date().getTime()
+  //end profiling
+
   var result = {description: '', syntax: '', example: '', gsnippet: '', qnaQuestion: '', qnaSnippet: ''}
   var headers
   $ = htmlparser.load(rawhtml)
@@ -182,6 +252,12 @@ var parseInfoFromHtml = function(url, rawhtml) {
     validResult = false
   }
 
+
+  //profiling
+  var elapsed = (new Date().getTime()) - startTime
+  var processName = 'parse url - ' + url
+  console.log(elapsed.toPrecision(4) + ' ms:\t' + processName.substring(0,50))
+  //end profiling
   if (validResult) {
     return result
   } else {
@@ -232,6 +308,11 @@ var reorderResults = function(req, res) {
   res.locals.query = req.query.q
   reIndexResults(res)
   removeUnwantedSnippets(res)
+  //profiling
+  printParallel(res)
+  gate('endpoint', res)
+  console.log('-----------------------------')
+  //end profiling
   res.render('search/index', res.locals )
 }
 
