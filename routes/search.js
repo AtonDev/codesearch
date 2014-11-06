@@ -38,8 +38,10 @@ var gateProcess = function(res, index, processName) {
 var printParallel = function(res) {
   for (var i = 0; i < res.locals.times.length; i++) {
     var elapsed = res.locals.times[i].elapsed
-    var processName = res.locals.times[i].processName || 'undefined'
-    console.log(elapsed.toPrecision(4) + ' ms:\t' + processName.substring(0,50))
+    if (res.locals.times[i].processName) {
+      var processName = res.locals.times[i].processName 
+      console.log(elapsed.toPrecision(4) + ' ms:\t' + processName.substring(0,50))
+    }
   }
 }
 
@@ -132,7 +134,7 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
   //end profiling
   var protocol = (url.indexOf('https') > -1) ? https : http
   try {
-    protocol.get(url, function httpResHandler(response) {
+    var req = protocol.get(url, function httpResHandler(response) {
       response.setEncoding('utf8')
       var collectHtml = ''
       response.on('data', function dataHandler(body) {
@@ -174,6 +176,26 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
         }
       })
     })
+    req.on('socket', function (socket) {
+        socket.setTimeout(1000)  
+        socket.on('timeout', function() {
+          req.abort()
+          res.locals.attempts += 1
+          if (res.locals.attempts == maxAttempts) { 
+            //profiling
+            gate('getSnippets', res)
+            //end profiling
+            next()
+          }
+        })
+    })
+    req.on('error', function(err) {
+      if (err.code === "ECONNRESET") {
+          console.log("Timeout occurs");
+      }
+    })
+
+
   } catch (err) {
     res.locals.attempts += 1
     if (res.locals.attempts == maxAttempts) { 
@@ -190,7 +212,7 @@ var getSnippet = function(url, index, res, next, maxAttempts) {
 }
 
 var getDispUrl = function(dispurl) {
-  return dispurl.replace(/<\/?[^>]+(>|$)/g, "")
+  return dispurl
 }
 
 var parseInfoFromHtml = function(url, rawhtml) {
@@ -319,7 +341,7 @@ var reorderResults = function(req, res) {
 
 var removeUnwantedSnippets = function(res) {
   for (var i = 0; i < res.locals.snippets.length; i++) {
-    if (res.locals.snippets[i] === null) {         
+    if (!res.locals.snippets[i]) {         
       res.locals.snippets.splice(i, 1);
       i--;
     }

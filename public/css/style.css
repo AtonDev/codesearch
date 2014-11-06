@@ -6,7 +6,7 @@
 .tip {
   color: #999;
   text-align: center;
-
+  margin: 3px 0 15px 0;
 }
 
 hr {
@@ -17,12 +17,15 @@ hr {
   font-size: 16px;
   font-weight: 500;
   color: blue;
+  margin-bottom: 5px;
 }
 
 .abstract {
+  margin-top: 5px;
   margin-bottom: 20px;
   font-size: 14px;
-  font-weight: 300;
+  font-weight: 450;
+
 }
 
 .snippet {
@@ -58,7 +61,7 @@ hr {
 
 .dispurl {
   font-size: 13px;
-  text-align: right;
+  text-align: left;
   margin-bottom: 0px;
   font-style:italic;
   color: #66CD00;

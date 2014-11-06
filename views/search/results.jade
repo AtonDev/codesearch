@@ -1,7 +1,7 @@
 .container
   .row
     .col-12
-      p.tip Tip: Specify the language in your query to get more accurate results.
+      p.tip Optimized for Python.
       if snippets
         each result, index in snippets
           //=JSON.stringify(result)
@@ -27,9 +27,9 @@
                 pre.snippet
                   code= result.info.qnaSnippet
             else if result.type == 'normal'
-              p.dispurl= result.dispurl
-              h2.title= result.title.replace(/<\/?[^>]+(>|$)/g, "")
-              p.abstract= result.abstract.replace(/<\/?[^>]+(>|$)/g, "")
+              h2.title !{result.title}
+              p.dispurl !{result.dispurl}
+              p.abstract !{result.abstract}
 
         
 
