@@ -44,7 +44,7 @@ background-color: #eee;
 opacity: 1;
 }
 textarea.form-control {
-height: auto;
+height: 50px;
 }
 
 
