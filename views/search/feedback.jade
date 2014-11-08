@@ -1,0 +1,25 @@
+button.btn-feedback(type='button', data-toggle='modal', data-target='#myModal')
+  | Send us your feedback
+
+#myModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+  .modal-dialog
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal')
+          span(aria-hidden='true') ×
+        h4#myModalLabel.modal-title Please tell us what you think
+      .modal-body
+        form.feedback-form(action="/feedback", method="post", role="form")
+          textarea.form-control(name="msg")
+          button.btn-submit(type='button', data-dismiss='modal') Submit!
+script.
+  $(".feedback-form").submit(function(e) {
+    e.preventDefault(); // Prevents the page from refreshing
+    var $this = $(this); // `this` refers to the current form element
+    $.post(
+      $this.attr("action"), // Gets the URL to sent the post to
+      $this.serialize(), // Serializes form data in standard format
+      function(data) { /** code to handle response **/ },
+      "json" // The format the response should be in
+      );
+    });
