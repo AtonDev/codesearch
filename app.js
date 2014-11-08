@@ -49,7 +49,8 @@ router.post('/feedback', function(req, res) {
   var params = {
     room: 958947, 
     from: 'Feedback',
-    message: req.body.msg
+    message: req.body.msg,
+    color: 'random'
   };
 
   HC.postMessage(params, function(data) {

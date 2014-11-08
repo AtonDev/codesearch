@@ -10,9 +10,12 @@ button.btn-feedback(type='button', data-toggle='modal', data-target='#feedbackMo
         h4#feedbackModalLabel.modal-title Please tell us what you think
       .modal-body
         form.feedback-form(action="/feedback", method="post", role="form")
-          textarea.form-control(type='text', autofocus="true", name="msg")
+          textarea.form-control#focus(type='text', autofocus="true", name="msg")
           input.btn-submit(type='submit', value="Submit!")
 script.
+  $('#feedbackModal').on('shown.bs.modal', function() {
+    $(this).find('#focus').focus();
+  });
   $(".feedback-form").submit(function(e) {
     e.preventDefault(); // Prevents the page from refreshing
     var $this = $(this); // `this` refers to the current form element
