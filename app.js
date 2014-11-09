@@ -19,6 +19,10 @@ app.set('view engine', 'jade')
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 // Middleware
+app.use(function(req, res, next) {
+  res.locals.environment = process.env.NODE_ENV || ''
+  next()
+})
 app.use(bodyparser.urlencoded())
 app.use(timeout('30s'))
 app.use(logger('dev'))
