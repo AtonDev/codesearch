@@ -102,6 +102,8 @@ var getBossResults = function(req, res, next) {
  *  @returns string the sanitized query to be used for the boss api call.
 */
 var sanitizeQuery = function(query) {
+  query = query.toLowerCase()
+  query = (query.indexOf('python') > -1) ? query : query + ' python'
   return query.split('+').join(' ')
 }
 
