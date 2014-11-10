@@ -82,6 +82,7 @@ height: 50px;
   background: none;
   font-size: 15px;
   color: #7B0000;
+  padding: 0;
 }
 
 .btn-feedback:hover {
