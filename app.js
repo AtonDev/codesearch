@@ -5,11 +5,10 @@ var hipchat = require('node-hipchat');
 var bodyparser = require('body-parser')
 var logger = require('morgan')
 var timeout = require('connect-timeout')
-var routes = require('./routes')
 var router = express.Router()
 var server
 var Schema = require('jugglingdb').Schema
-var app = express()
+
 
 var HC = new hipchat('a054b26a420f7c8f23f321f8134a3b')
 
@@ -24,12 +23,20 @@ var schema = new Schema('postgres', {
   // debug: false
 });
 
+var app = express()
 //Configuration
 app.set('schema', schema)
 app.set('port', process.env.PORT || 3000)
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
+
+//make app available to models and controllers
+var routes = require('./routes')(app)
+var models = require('./models/')(app)
+
+
 
 // Middleware
 app.use(function(req, res, next) {
@@ -58,7 +65,7 @@ router.get('/', function(req, res){
 })
 
 // SEARCH
-router.get('/s', routes.search.search)
+router.get('/s', routes.search)
 
 
 //FEEDBACK
@@ -87,32 +94,10 @@ process.on('uncaughtException', function (err) {
   
 
 // TEST
-var Keyword = schema.define('keyword',{
-  keyword: { type: String , unique: true, index: true}
-})
-
-var Infocard = schema.define('infocard', {
-  syntax: { type: String },
-  example: { type: String },
-  descritpion: { type: String },
-  sourceURL: { type: String },
-  language: { type: String },
-  date_updated: { type: Date }
-})
 
 
-Keyword.hasAndBelongsToMany('infocards')
 
-schema.automigrate()
-schema.isActual(function(err, actual) {
-  if (!actual) {
-    schema.autoupdate()
-  }
-})
 
-Keyword.create({keyword: 'list'}, function(err, user) {
-  console.log('something happened')
-})
 
 // INITIALISATION
 
@@ -124,7 +109,14 @@ server.on('error', function (err) {
 })
 
 
+schema.isActual(function(err, actual) {
+  if (!actual) {
+      schema.autoupdate();
+  }
+  server.listen(app.get('port'), function() {
+    console.log('app listening at port: ' + app.get('port'))
+  })
+});
 
-server.listen(app.get('port'), function() {
-  console.log('app listening at port: ' + app.get('port'))
-})
+
+module.exports.app = app
