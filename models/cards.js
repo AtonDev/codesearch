@@ -16,7 +16,12 @@ module.exports = function (app) {
 
 
   Keyword.hasAndBelongsToMany('infocards')
+  Infocard.hasAndBelongsToMany('keywords')
 
+  Infocard.validatesPresenceOf('syntax', 'example', 'descritpion', 'language')
+  Infocard.validatesInclusionOf('language', {in: ['python']})
+  Keyword.validatesPresenceOf('keyword')
+  Keyword.validatesLengthOf('keyword', {min: 1, message: {min: 'Keyword needs at least 1 character'}})
 
   return {Keyword: Keyword, Infocard: Infocard} 
 }

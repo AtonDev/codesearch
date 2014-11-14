@@ -91,17 +91,9 @@ process.on('uncaughtException', function (err) {
   console.error(err.stack)
   //process.exit(1)
 })
-  
-
-// TEST
-
-
-
 
 
 // INITIALISATION
-
-
 server = http.createServer(app)
 
 server.on('error', function (err) {
