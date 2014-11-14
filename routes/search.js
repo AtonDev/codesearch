@@ -8,6 +8,7 @@ module.exports = function(app) {
 
   var ybClient = new YaBoss(process.env.YBOSS_KEY, process.env.YBOSS_SECRET)
 
+  var pythonSites = 'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'
 
   //Simple time profiler
 
@@ -62,11 +63,12 @@ module.exports = function(app) {
     start(res)
     //end profiling
     var query, options, cbCount, data1 = [], data2 = []
-    query = sanitizeQuery(req.query.q )
-    options = {count: 10, sites:'stackoverflow.com,pythonarticles.com,tutorialspoint.com,python.org,xahlee.info,www.ibiblio.org/g2swap/byteofpython/read,python.eventscripts.com,www.diveintopython.net,www.python-course.eu'}
+    res.locals.userQuery = req.query.q.trim()
+    req.query.q = sanitizeQuery(req.query.q )
+    options = {count: 10, sites: pythonSites}
     cbCount = 0
 
-    ybClient.searchWeb(query, options, function(err,dataFound,response) {
+    ybClient.searchWeb(req.query.q, options, function(err,dataFound,response) {
       data1 = JSON.parse(dataFound).bossresponse.web.results || []
       removeUnwantedURLs(data1)
       cbCount += 1
@@ -86,7 +88,7 @@ module.exports = function(app) {
       }
     })
 
-    ybClient.searchWeb(query, {count: 10} ,function(err,dataFound,resp) {
+    ybClient.searchWeb(req.query.q, {count: 10} ,function(err,dataFound,resp) {
       data2 = JSON.parse(dataFound).bossresponse.web.results || []
       cbCount += 1
       if (cbCount == 2) {
@@ -104,7 +106,11 @@ module.exports = function(app) {
    *  @returns string the sanitized query to be used for the boss api call.
   */
   var sanitizeQuery = function(query) {
-    return query.split('+').join(' ')
+    console.log(query)
+    query = query.toLowerCase()
+    query = query.trim()
+    query = query.split(/\s+/).sort().join(" ")
+    return query
   }
 
 
@@ -329,7 +335,6 @@ module.exports = function(app) {
   //PHASE 3: reorder results and remove unwanted snippets
 
   var reorderResults = function(req, res) {
-    res.locals.query = req.query.q
     reIndexResults(res)
     removeUnwantedSnippets(res)
     //profiling

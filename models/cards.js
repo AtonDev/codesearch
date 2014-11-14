@@ -11,6 +11,7 @@ module.exports = function (app) {
     descritpion: { type: String },
     sourceURL: { type: String },
     language: { type: String },
+    priority: { type: Boolean, default: false },
     date_updated: { type: Date }
   })
 
