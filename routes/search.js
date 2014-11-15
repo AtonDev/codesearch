@@ -114,12 +114,11 @@ module.exports = function(app) {
   }
 
 
-  // PHASE 2: extract info from each url
+  // PHASE 2: extract info from each url + get info from database
 
 
   var getSnippets = function(req, res, next) {
     var data = res.locals.bossdata
-    var snippets = []
 
     res.locals.snippets = []
     res.locals.attempts = 0
@@ -128,9 +127,14 @@ module.exports = function(app) {
     removeUnwantedURLs(data)
 
 
+
+
     //profiling
     startParallel(res)
     //end profiling
+
+
+
     for (var i = 0; i < data.length; i++) {
       getSnippet(data[i].clickurl, i, res, next, data.length) 
     }
@@ -219,9 +223,12 @@ module.exports = function(app) {
     }
   }
 
+
+
   var getDispUrl = function(dispurl) {
     return dispurl
   }
+
 
   var parseInfoFromHtml = function(url, rawhtml) {
     //profiling
@@ -332,9 +339,48 @@ module.exports = function(app) {
     }
   }
 
-  //PHASE 3: reorder results and remove unwanted snippets
+
+  //PHASE 3: 
+
+  var getCardsFromDB = function(req, res, next) {
+    var schema = app.get('schema')
+    res.locals.dbCards = []
+    //tokenize query
+    var tokens = req.query.q.split(' ')
+
+    //for token in query look for matching keywords
+    var cbCount = 0
+    for (var i = tokens.length - 1; i >= 0; i--) {
+      schema.models.keyword.findOne({where: {keyword: tokens[i]}}, function(err, keyword){
+        if (keyword) {
+          schema.models.infocard.all({where: {keywordId:keyword.id} }, function(err, cards) {
+            for (var i = cards.length - 1; i >= 0; i--) {
+              res.locals.dbCards.push(cards[i])
+            }
+            cbCount += 1
+            if (cbCount == tokens.length) {
+              next()
+            }
+          })
+        } else {
+          cbCount += 1
+          if (cbCount == tokens.length) {
+            next()
+          }
+        }
+      })
+    };
+
+    //get the card and save to locals indicating that it is a db card and if it has priority
+
+
+
+  }
+
+  //PHASE 4: reorder results and remove unwanted snippets
 
   var reorderResults = function(req, res) {
+    formartDbCardsAndAddToSnippets(res)
     reIndexResults(res)
     removeUnwantedSnippets(res)
     //profiling
@@ -343,6 +389,26 @@ module.exports = function(app) {
     console.log('-----------------------------')
     //end profiling
     res.render('search/index', res.locals )
+  }
+
+  var formartDbCardsAndAddToSnippets = function(res) {
+    for (var i = 0; i < res.locals.dbCards.length; i++) {
+      var card = res.locals.dbCards[i]
+      res.locals.snippets.push({
+        clickurl: card.sourceURL,
+        dispurl: 'python.org',
+        info: {
+          syntax: card.syntax,
+          example: card.example,
+          description: card.description,
+          qnaQuestion: '',
+          qnaSnippet: ''
+        },
+        priority: card.priority,
+        type: 'dbsnippet'
+      })
+
+    }
   }
 
 
@@ -371,15 +437,17 @@ module.exports = function(app) {
         if (snippetItem.info.gsnippet !== '') { 
           score -= 0.1 
         }
+      } else if (snippetItem.type == 'dbsnippet') {
+        score += (snippetItem.priority ? 15 : 10) //15 is greater than 10 which is greater than 5 + the max of above
       }
       return score
-    }
+    } 
     res.locals.snippets = res.locals.snippets.sort(function(a, b) {
       return itemScore(b) - itemScore(a)
     })
   }
 
-  return [getBossResults, getSnippets, reorderResults]
+  return [getBossResults, getSnippets, getCardsFromDB, reorderResults]
 
 }
 

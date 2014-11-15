@@ -6,7 +6,7 @@
         each result, index in snippets
           //=JSON.stringify(result)
           div(onclick="location.href='#{result.clickurl}'").result
-            if result.type == 'snippet'
+            if result.type == 'snippet' || result.type == 'dbsnippet' 
               if result.info.description != ''
                 p.infotext= result.info.description 
               if result.info.syntax != ''
