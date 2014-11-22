@@ -33,8 +33,9 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 
 //make app available to models and controllers
-var routes = require('./routes')(app)
 var models = require('./models/')(app)
+var routes = require('./routes')(app)
+
 
 
 
@@ -70,7 +71,7 @@ router.get('/s', routes.search)
 
 // POPULATE DB
 router.get('/handcards', routes.handcards.index)
-router.get('/handcards/:id', routes.handcards.show)
+router.get('/handcards/get/:id', routes.handcards.show)
 router.get('/handcards/new', routes.handcards.new)
 router.post('/handcards/create', routes.handcards.create)
 router.get('/handcards/:id/edit', routes.handcards.edit)
