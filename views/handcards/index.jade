@@ -1,1 +1,24 @@
 h1=title
+table
+  tr
+    th keywords
+    th syntax
+    th example
+    th priority
+    th sourceURL
+    th description
+  if cards
+    each card, index in cards
+      tr
+        td= card.myKeywords
+        td= card.syntax
+        td= card.example
+        td= card.priority
+        td= card.sourceURL
+        td= card.description
+        td
+          a(href='') show 
+        td
+          a(href='') edit 
+        td  
+          a(href='') delete
