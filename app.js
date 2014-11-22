@@ -43,7 +43,7 @@ app.use(function(req, res, next) {
   res.locals.environment = process.env.NODE_ENV || ''
   next()
 })
-app.use(bodyparser.urlencoded())
+app.use(bodyparser.urlencoded({extended: true}))
 app.use(timeout('20s'))
 app.use(logger('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -69,6 +69,14 @@ router.get('/s', routes.search)
 
 
 // POPULATE DB
+router.get('/handcards', routes.handcards.index)
+router.get('/handcards/:id', routes.handcards.show)
+router.get('/handcards/new', routes.handcards.new)
+router.post('/handcards/create', routes.handcards.create)
+router.get('/handcards/:id/edit', routes.handcards.edit)
+router.put('/handcards/:id/update', routes.handcards.update)
+router.patch('/handcards/:id/update', routes.handcards.update)
+router.delete('/handcards/:id', routes.handcards.destroy)
 
 
 //FEEDBACK
