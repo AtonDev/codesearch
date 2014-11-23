@@ -44,7 +44,7 @@ module.exports = function(app) {
     },
     create: function(req, res, next) {
       console.log(req.body)
-      res.render('handcards/index')
+      res.redirect('handcards/index')
     },
     edit: function(req, res, next) {
       var cardId = req.params.id
@@ -53,11 +53,11 @@ module.exports = function(app) {
     update: function(req, res, next) {
       var cardId = req.params.id
       console.log(req.body)
-      res.render('handcards/index')
+      res.redirect('handcards/index')
     },
     destroy: function(req, res, next) {
       var cardId = req.params.id
-      res.render('handcards/index')
+      res.redirect('handcards/index')
       
     }
   }
