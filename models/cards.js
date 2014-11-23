@@ -5,6 +5,19 @@ module.exports = function (app) {
     keyword: { type: String , unique: true, index: true}
   })
 
+  // create new keyword if it does not exist
+  Keyword.prototype.create = function(data, callback) {
+    Keyword._super_.create(data, function(err, keyword) {
+      if (!err) {
+        callback(err, keyword)
+      } else {
+        Keyword.findOne({where: {keyword: data.keyword}}, function(err, keyword) {
+          callback(err, keyword)
+        })
+      }
+    }) 
+  };
+
   var Infocard = schema.define('infocard', {
     syntax: { type: String },
     example: { type: String },
@@ -14,6 +27,26 @@ module.exports = function (app) {
     priority: { type: Boolean, default: false },
     date_updated: { type: Date }
   })
+
+  Infocard.prototype.assignToKeywords = function assignToKeywords(keywords, callback) {
+    var counter = 0
+    var self = this
+    var handleKeywordCardAssociation = function associationHandler(err, keyword) {
+      keyword.infocards.add(self, function(err) {
+        if (err) {
+          console.error(err)
+          console.error(err.stack)
+        }
+        counter++
+        if (counter == keywords.length) {
+          callback()
+        }
+      })
+    }
+    for (var i = keywords.length - 1; i >= 0; i--) {
+      Keyword.create({keyword: keywords[i]}, handleKeywordCardAssociation)
+    }
+  }
 
 
   Keyword.hasAndBelongsToMany('infocards')

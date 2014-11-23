@@ -6,23 +6,31 @@ module.exports = function(app) {
         var counter = 0
         if (err) {
           console.error(err.msg)
+          consle.error(err.stack)
           res.end()
         }
-        for (var i = data.length - 1; i >= 0; i--) {
-          (function(index){
-            schema.models.keyword.all({where: {infocardId: data[index].id}}, function handleKeywordsData(err, keywordsdata) {
-              data[index]['myKeywords'] = keywordsdata.map(function handleKeywordObject(keywordObj){
-                return keywordObj.keyword
-              }).join(' ')
-              console.log(data[index]['myKeywords'])
-              counter++
-              if (counter == data.length) {
-                res.locals.cards = data
-                res.locals.title = 'index'
-                res.render('handcards/index')
-              }
-            })
-          })(i) 
+
+        if (data.length === 0) {
+          res.locals.title = 'index'
+          res.render('handcards/index')
+        } else {
+          for (var i = data.length - 1; i >= 0; i--) {
+            (function(index){
+              data[index].keywords(function handleKeywordsData(err, keywordsdata) {
+                if (keywordsdata) {
+                  data[index]['myKeywords'] = keywordsdata.map(function handleKeywordObject(keywordObj){
+                    return keywordObj.keyword
+                  }).join(' ')
+                }
+                counter++
+                if (counter == data.length) {
+                  res.locals.cards = data
+                  res.locals.title = 'index'
+                  res.render('handcards/index')
+                }
+              })
+            })(i)
+          }
         }
       })
     },
@@ -43,8 +51,30 @@ module.exports = function(app) {
       res.render('handcards/new')
     },
     create: function(req, res, next) {
+      var data = {
+        syntax: req.body.syntax,
+        example: req.body.example,
+        sourceURL: req.body.sourceURL,
+        description: req.body.description,
+        language: req.body.language,
+        priority: (req.body.priority == 'true'),
+        date_updated: new Date().getTime()
+      }
+      schema.models.infocard.create(data, function(err, card) {
+        if (!err) {
+          var keywords = req.body.cKeywords.split(/\s+/)
+          card.assignToKeywords(keywords, function() {
+            res.redirect('/handcards')
+          })
+        } else {
+          console.error(err.msg)
+          console.error(err.stack)
+          res.redirect('/handcards/new')
+        }
+      })
+        
       console.log(req.body)
-      res.redirect('handcards/index')
+
     },
     edit: function(req, res, next) {
       var cardId = req.params.id
@@ -53,11 +83,11 @@ module.exports = function(app) {
     update: function(req, res, next) {
       var cardId = req.params.id
       console.log(req.body)
-      res.redirect('handcards/index')
+      res.redirect('/handcards')
     },
     destroy: function(req, res, next) {
       var cardId = req.params.id
-      res.redirect('handcards/index')
+      res.redirect('/handcards')
       
     }
   }

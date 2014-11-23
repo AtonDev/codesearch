@@ -1,8 +1,8 @@
 h1=title
-form(method='post', action='/handcards/create')
+form(method='post', action='/handcards/create', id='newCard')
   .form-group
     label keywords: key1 key2 key3 ...: 
-    input(type='text', name='keywords')
+    input(type='text', name='cKeywords')
   .form-group
     label syntax: 
     input(type='text', name='syntax')
@@ -14,10 +14,16 @@ form(method='post', action='/handcards/create')
     input(type='text', name='description')
   .form-group
     label priority: 
-    input(type='text', name='priority')
+    select(name='priority', form='newCard')
+      option(value='false') false
+      option(value='true') true
   .form-group
     label sourceURL: 
     input(type='text', name='sourceURL')
+  .form-group
+    label language:
+    select(name='language', form='newCard')
+      option(value='python') python
   .form-group
     input(type='submit', value='submit')
 

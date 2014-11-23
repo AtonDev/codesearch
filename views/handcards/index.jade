@@ -1,4 +1,5 @@
 h1=title
+a(href='/handcards/new') new card
 table
   tr
     th keywords
@@ -17,8 +18,8 @@ table
         td= card.sourceURL
         td= card.description
         td
-          a(href='') show 
+          a(href='/handcards/get/#{card.id}') show 
         td
-          a(href='') edit 
+          a(href='/handcards/edit/#{card.id}') edit 
         td  
           a(href='') delete

@@ -74,9 +74,9 @@ router.get('/handcards', routes.handcards.index)
 router.get('/handcards/get/:id', routes.handcards.show)
 router.get('/handcards/new', routes.handcards.new)
 router.post('/handcards/create', routes.handcards.create)
-router.get('/handcards/:id/edit', routes.handcards.edit)
-router.put('/handcards/:id/update', routes.handcards.update)
-router.patch('/handcards/:id/update', routes.handcards.update)
+router.get('/handcards/edit/:id', routes.handcards.edit)
+router.put('/handcards/update/:id', routes.handcards.update)
+router.patch('/handcards/update/:id', routes.handcards.update)
 router.delete('/handcards/:id', routes.handcards.destroy)
 
 
