@@ -12,16 +12,24 @@ var Schema = require('jugglingdb').Schema
 
 var HC = new hipchat('a054b26a420f7c8f23f321f8134a3b')
 
-var schema = new Schema('postgres', {
-  database: 'codesearch'
-  // username: 'postgres',
-  // host: 'localhost',
-  // port: 5432,
-  // password: s.password,
-  // database: s.database,
-  // ssl: true,
-  // debug: false
-});
+var schema
+if (process.env.NODE_ENV == 'production') {
+  schema = new Schema('postgres', {
+    url: process.env.DATABASE_URL 
+  })  
+} else {
+  new Schema('postgres', {
+    database: 'codesearch'
+    // username: 'postgres',
+    // host: 'localhost',
+    // port: 5432,
+    // password: s.password,
+    // database: s.database,
+    // ssl: true,
+    // debug: false
+  })
+}
+  
 
 var app = express()
 //Configuration
