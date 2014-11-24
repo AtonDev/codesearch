@@ -5,18 +5,6 @@ module.exports = function (app) {
     keyword: { type: String , unique: true, index: true}
   })
 
-  // create new keyword if it does not exist
-  Keyword.prototype.create = function(data, callback) {
-    Keyword._super_.create(data, function(err, keyword) {
-      if (!err) {
-        callback(err, keyword)
-      } else {
-        Keyword.findOne({where: {keyword: data.keyword}}, function(err, keyword) {
-          callback(err, keyword)
-        })
-      }
-    }) 
-  };
 
   var Infocard = schema.define('infocard', {
     syntax: { type: String },
@@ -32,19 +20,30 @@ module.exports = function (app) {
     var counter = 0
     var self = this
     var handleKeywordCardAssociation = function associationHandler(err, keyword) {
-      keyword.infocards.add(self, function(err) {
-        if (err) {
-          console.error(err)
-          console.error(err.stack)
-        }
-        counter++
-        if (counter == keywords.length) {
-          callback()
-        }
-      })
+      if (!err){
+        keyword.infocards.add(self, function(err) {
+          if (err) {
+            console.error(err.stack)
+          }
+          counter++
+          if (counter == keywords.length) {
+            callback()
+          }
+        })
+      } else {
+        console.error(err.stack)
+      }
     }
     for (var i = keywords.length - 1; i >= 0; i--) {
-      Keyword.create({keyword: keywords[i]}, handleKeywordCardAssociation)
+      (function(index){
+        Keyword.findOne({where: {keyword: keywords[index]}}, function(err, keyword) {
+          if (keyword === null || keyword.keyword === null) {
+            Keyword.create({keyword: keywords[index]}, handleKeywordCardAssociation)
+          } else {
+            handleKeywordCardAssociation(err, keyword)
+          }
+        })
+      })(i)
     }
   }
 

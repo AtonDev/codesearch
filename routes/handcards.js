@@ -5,7 +5,7 @@ module.exports = function(app) {
       schema.models.infocard.all(function handleInfocardsData(err, data) {
         var counter = 0
         if (err) {
-          console.error(err.msg)
+          
           consle.error(err.stack)
           res.end()
         }
@@ -35,10 +35,9 @@ module.exports = function(app) {
       })
     },
     show: function(req, res, next) {
-      var cardId = req.params.id
-      schema.models.infocard.findOne({where: {id: cardId}}, function(err, data) {
+      schema.models.infocard.find(req.params.id, function(err, data) {
         if (err) {
-          console.error(err.msg)
+          
           res.end()
         }
         res.locals.snippets = formartDbCardAndAddToSnippets(data)
@@ -67,28 +66,74 @@ module.exports = function(app) {
             res.redirect('/handcards')
           })
         } else {
-          console.error(err.msg)
+          
           console.error(err.stack)
           res.redirect('/handcards/new')
         }
       })
         
-      console.log(req.body)
 
     },
     edit: function(req, res, next) {
-      var cardId = req.params.id
-      res.render('handcards/edit', {title: 'edit', id: cardId})
+      schema.models.infocard.find(req.params.id, function(err, data) {
+        data.keywords(function handleKeywords(err, keywordsdata) {
+          if (keywordsdata) {
+            data['myKeywords'] = keywordsdata.map(function handleKeywordObject(keywordObj){
+              return keywordObj.keyword
+            }).join(' ')
+          }
+          res.locals.card = data
+          res.locals.title = 'edit'
+          res.render('handcards/edit')
+        })
+        if (err) {
+          
+          res.end()
+        }
+      })
     },
     update: function(req, res, next) {
-      var cardId = req.params.id
-      console.log(req.body)
-      res.redirect('/handcards')
+      schema.models.infocard.find(req.params.id, function(err, card){
+        card.updateAttributes(req.body, function(err, card){
+          card.keywords(function removeAllKeywordsLinks(err, keywordsdata) {
+            var counter = 0
+            var keywords = req.body.cKeywords.split(/\s+/)
+            if (keywordsdata.length === 0) {
+              card.assignToKeywords(keywords, function() {
+                res.redirect('/handcards')
+              })
+            } else {
+              for (var i = keywordsdata.length - 1; i >= 0; i--) {
+                keywordsdata[i].infocards.remove(card, function(err) {
+                  counter++
+                  if (counter == keywordsdata.length) {
+                    card.assignToKeywords(keywords, function() {
+                      res.redirect('/handcards')
+                    })
+                  }
+                })
+              }
+            }
+          })
+        })
+      })
     },
     destroy: function(req, res, next) {
-      var cardId = req.params.id
-      res.redirect('/handcards')
-      
+      schema.models.infocard.find(req.params.id, function(err, card){
+        card.keywords(function removeAllKeywordsLinks(err, keywordsdata) {
+          var counter = 0
+          for (var i = keywordsdata.length - 1; i >= 0; i--) {
+            keywordsdata[i].infocards.remove(card, function(err) {
+              counter++
+              if (counter == keywordsdata.length) {
+                card.destroy(function(err){
+                  res.redirect('/handcards')
+                })
+              }
+            })
+          }
+        })
+      })
     }
   }
 
