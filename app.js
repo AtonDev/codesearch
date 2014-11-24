@@ -13,12 +13,8 @@ var Schema = require('jugglingdb').Schema
 var HC = new hipchat('a054b26a420f7c8f23f321f8134a3b')
 
 var schema
-if (process.env.NODE_ENV == 'production') {
+if (process.env.NODE_ENV == 'development') {
   schema = new Schema('postgres', {
-    url: process.env.DATABASE_URL 
-  })  
-} else {
-  new Schema('postgres', {
     database: 'codesearch'
     // username: 'postgres',
     // host: 'localhost',
@@ -28,6 +24,10 @@ if (process.env.NODE_ENV == 'production') {
     // ssl: true,
     // debug: false
   })
+} else {
+  schema = new Schema('postgres', {
+    url: process.env.DATABASE_URL 
+  })  
 }
   
 
