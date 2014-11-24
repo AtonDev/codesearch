@@ -18,8 +18,11 @@ table
         td= card.sourceURL
         td= card.description
         td
-          a(href='/handcards/get/#{card.id}') show 
+          form(action='/handcards/get/#{card.id}', method="get")
+            input(type='submit' value='show') 
         td
-          a(href='/handcards/edit/#{card.id}') edit 
+          form(action='/handcards/edit/#{card.id}', method="get")
+            input(type='submit' value='edit') 
         td  
-          a(href='') delete
+          form(action='/handcards/delete/#{card.id}', method="post")
+            input(type='submit' value='delete')

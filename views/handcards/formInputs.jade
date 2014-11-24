@@ -1,0 +1,30 @@
+mixin myInput(type, name, attribute)
+  input(type=type, name=name, value= (card? card[attribute] : ''))
+mixin myOption(value, attribute)
+  option(value=value, selected=(card? (card[attribute] == value) : false))=value
+.form-group
+  label keywords: key1 key2 key3 ...:
+  +myInput('text', 'cKeywords', 'myKeywords')
+.form-group
+  label syntax:
+  +myInput('text', 'syntax', 'syntax')
+.form-group
+  label example:
+  +myInput('text', 'example', 'example')
+.form-group
+  label description:
+  +myInput('text', 'description', 'description')
+.form-group
+  label priority:
+  select(name='priority' form='card')
+    +myOption('false', 'priority')
+    +myOption('true', 'priority')
+.form-group
+  label sourceURL:
+  +myInput('text', 'sourceURL', 'sourceURL')
+.form-group
+  label language:
+  select(name='language' form='card')
+    option(value='python') python
+.form-group
+  input(type='submit' value='submit')
