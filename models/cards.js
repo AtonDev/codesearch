@@ -31,6 +31,7 @@ module.exports = function (app) {
           }
         })
       } else {
+        console.error(err)
         console.error(err.stack)
       }
     }

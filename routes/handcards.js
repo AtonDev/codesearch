@@ -61,12 +61,11 @@ module.exports = function(app) {
       }
       schema.models.infocard.create(data, function(err, card) {
         if (!err) {
-          var keywords = req.body.cKeywords.split(/\s+/)
+          var keywords = formatKeywords(req.body.cKeywords)
           card.assignToKeywords(keywords, function() {
             res.redirect('/handcards')
           })
         } else {
-          
           console.error(err.stack)
           res.redirect('/handcards/new')
         }
@@ -97,7 +96,7 @@ module.exports = function(app) {
         card.updateAttributes(req.body, function(err, card){
           card.keywords(function removeAllKeywordsLinks(err, keywordsdata) {
             var counter = 0
-            var keywords = req.body.cKeywords.split(/\s+/)
+            var keywords = formatKeywords(req.body.cKeywords)
             if (keywordsdata.length === 0) {
               card.assignToKeywords(keywords, function() {
                 res.redirect('/handcards')
@@ -140,7 +139,11 @@ module.exports = function(app) {
   return handcards 
 }
 
-var formartDbCardAndAddToSnippets = function(card) {
+function formatKeywords(keywordsString) {
+  return keywordsString.trim().split(/\s+/)
+}
+
+function formartDbCardAndAddToSnippets(card) {
   var result = []
   result.push({
     clickurl: card.sourceURL,
