@@ -48,6 +48,7 @@ module.exports = function(app) {
     }
   }
 
+
   // PHASE 1: get the collection of urls to extract the info from
 
   /** Saves the results received by boss in res.locals.bossdata
@@ -88,6 +89,7 @@ module.exports = function(app) {
       }
     })
 
+
     ybClient.searchWeb(req.query.q, {count: 10} ,function(err,dataFound,resp) {
       data2 = JSON.parse(dataFound).bossresponse.web.results || []
       cbCount += 1
@@ -107,6 +109,7 @@ module.exports = function(app) {
   */
   var sanitizeQuery = function(query) {
     console.log(query)
+    query = (query.indexOf('python') > -1) ? query : query + ' python'
     query = query.toLowerCase()
     query = query.trim()
     query = query.split(/\s+/).sort().join(" ")
