@@ -1,28 +1,34 @@
-h1=title
-a(href='/handcards/new') new card
-table
-  tr
-    th keywords
-    th syntax
-    th example
-    th priority
-    th sourceURL
-    th description
-  if cards
-    each card, index in cards
-      tr
-        td= card.myKeywords
-        td= card.syntax
-        td= card.example
-        td= card.priority
-        td= card.sourceURL
-        td= card.description
-        td
-          form(action='/handcards/get/#{card.id}', method="get")
-            input(type='submit' value='show') 
-        td
-          form(action='/handcards/edit/#{card.id}', method="get")
-            input(type='submit' value='edit') 
-        td  
-          form(action='/handcards/delete/#{card.id}', method="post")
-            input(type='submit' value='delete')
+extends layout
+block content
+  h1=title
+  form(action='/handcards/new', method="get")
+    input.btn.btn-sm.btn-primary(type='submit' value='new card') 
+  table.table
+    tr
+      th keywords
+      th syntax
+      th example
+      th priority
+      th sourceURL
+      th description
+      th
+      th actions
+      th
+    if cards
+      each card, index in cards
+        tr
+          td= card.myKeywords
+          td= card.syntax
+          td= card.example
+          td= card.priority
+          td= card.sourceURL
+          td= card.description
+          td
+            form(action='/handcards/get/#{card.id}', method="get")
+              input.btn.btn-sm.btn-primary(type='submit' value='show') 
+          td
+            form(action='/handcards/edit/#{card.id}', method="get")
+              input.btn.btn-sm.btn-primary(type='submit' value='edit') 
+          td  
+            form(action='/handcards/delete/#{card.id}', method="post")
+              input.btn.btn-sm.btn-primary(type='submit' value='delete')

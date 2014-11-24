@@ -1,3 +1,5 @@
-h1=title
-form(method='post' action='/handcards/update/#{card.id}' id='card')
-  include formInputs
+extends layout
+block content
+  h1=title
+  form(method='post' action='/handcards/update/#{card.id}' id='card')
+    include formInputs

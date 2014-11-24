@@ -1,30 +1,31 @@
-mixin myInput(type, name, attribute)
-  input(type=type, name=name, value= (card? card[attribute] : ''))
+mixin myInput(type, name, attribute, rows)
+  textarea(class='form-control', type=type, name=name, value= (card? card[attribute] : ''), rows=rows)
 mixin myOption(value, attribute)
   option(value=value, selected=(card? (card[attribute] == value) : false))=value
 .form-group
-  label keywords: key1 key2 key3 ...:
-  +myInput('text', 'cKeywords', 'myKeywords')
+  label keywords:
+  p keywords should be separated by spaces only. e.g key1 key2 key3
+  +myInput('text', 'cKeywords', 'myKeywords', 1)
 .form-group
   label syntax:
-  +myInput('text', 'syntax', 'syntax')
+  +myInput('text', 'syntax', 'syntax', 2)
 .form-group
   label example:
-  +myInput('text', 'example', 'example')
+  +myInput('text', 'example', 'example', 3)
 .form-group
   label description:
-  +myInput('text', 'description', 'description')
+  +myInput('text', 'description', 'description', 5)
 .form-group
   label priority:
-  select(name='priority' form='card')
+  select.form-control(name='priority' form='card')
     +myOption('false', 'priority')
     +myOption('true', 'priority')
 .form-group
   label sourceURL:
-  +myInput('text', 'sourceURL', 'sourceURL')
+  +myInput('text', 'sourceURL', 'sourceURL', 1)
 .form-group
   label language:
-  select(name='language' form='card')
+  select.form-control(name='language' form='card')
     option(value='python') python
 .form-group
-  input(type='submit' value='submit')
+  input.btn.btn-primary(type='submit' value='submit')
