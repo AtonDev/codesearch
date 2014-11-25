@@ -1,5 +1,5 @@
 mixin myInput(type, name, attribute, rows)
-  textarea(class='form-control', type=type, name=name, value= (card? card[attribute] : ''), rows=rows)
+  textarea(class='form-control', type=type, name=name, rows=rows)=(card? card[attribute] : '')
 mixin myOption(value, attribute)
   option(value=value, selected=(card? (card[attribute] == value) : false))=value
 .form-group
