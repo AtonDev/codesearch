@@ -1,3 +1,5 @@
+var SHA256 = require("crypto-js/sha256")
+var crypto = require("crypto-js")
 module.exports = function(app) {
   var schema = app.get('schema')
   var handcards = {
@@ -133,6 +135,28 @@ module.exports = function(app) {
           }
         })
       })
+    },
+    newlogin: function(req, res, next) {
+      return res.render('handcards/login')
+    },
+    login: function(req, res, next) {
+      var password = SHA256(req.body.password).toString(crypto.enc.Hex).toUpperCase()
+      console.log(password)
+      if (password == '6936CD20441C12B99F04643BD5ECD00F942AEAF4463F6217C789333A08B7916D') {
+        req.session.authenticated = true
+        return res.redirect('/handcards')
+      } else {
+        return res.redirect('/admin/login')
+      }
+
+    },
+    authenticate: function(req, res, next) {
+      console.log(req.session)
+      if (req.session && req.session.authenticated) {
+        return next()
+      } else {
+        return res.redirect('/admin/login')
+      }
     }
   }
 

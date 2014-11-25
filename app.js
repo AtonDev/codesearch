@@ -1,8 +1,10 @@
 var express = require('express')
 var path = require('path')
 var http = require('http')
-var hipchat = require('node-hipchat');
+var hipchat = require('node-hipchat')
 var bodyparser = require('body-parser')
+var cookieParser = require('cookie-parser')
+var cookieSession = require('cookie-session')
 var logger = require('morgan')
 var timeout = require('connect-timeout')
 var router = express.Router()
@@ -16,13 +18,6 @@ var schema
 if (process.env.NODE_ENV == 'development') {
   schema = new Schema('postgres', {
     database: 'codesearch'
-    // username: 'postgres',
-    // host: 'localhost',
-    // port: 5432,
-    // password: s.password,
-    // database: s.database,
-    // ssl: true,
-    // debug: false
   })
 } else {
   schema = new Schema('postgres', {
@@ -56,6 +51,10 @@ app.use(bodyparser.urlencoded({extended: true}))
 app.use(timeout('20s'))
 app.use(logger('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(cookieParser())
+app.use(cookieSession({
+  keys: ['key1', 'key2']
+}))
 app.use(router)
 app.use(function(req, res) { 
   res.status(404)
@@ -78,6 +77,7 @@ router.get('/s', routes.search)
 
 
 // POPULATE DB
+router.all('/handcards*', routes.handcards.authenticate)
 router.get('/handcards', routes.handcards.index)
 router.get('/handcards/get/:id', routes.handcards.show)
 router.get('/handcards/new', routes.handcards.new)
@@ -85,6 +85,8 @@ router.post('/handcards/create', routes.handcards.create)
 router.get('/handcards/edit/:id', routes.handcards.edit)
 router.post('/handcards/update/:id', routes.handcards.update)
 router.post('/handcards/delete/:id', routes.handcards.destroy)
+router.get('/admin/login', routes.handcards.newlogin)
+router.post('/admin/login', routes.handcards.login)
 
 
 //FEEDBACK
