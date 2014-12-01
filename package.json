@@ -28,6 +28,7 @@
     "jugglingdb": "^0.3.0",
     "jugglingdb-postgres": "^0.1.0",
     "morgan": "^1.4.0",
+    "newrelic": "^1.14.0",
     "node-hipchat": "^0.4.5",
     "oauth": "^0.9.12",
     "yaboss": "^0.1.2"
