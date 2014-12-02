@@ -391,7 +391,6 @@ module.exports = function(app) {
   }
 
   var filterAndScoreDBCards = function(res) {
-    console.log(res.locals.dbCards)
     var results = res.locals.dbCards.sort(function(a, b){
       return b.id - a.id
     })
@@ -404,6 +403,11 @@ module.exports = function(app) {
         results[i].occurences = 1        
       }
     }
+
+    results.sort(function(a, b) {
+      return b.occurences - a.occurences
+    })
+    results = results.slice(0, 3)
     res.locals.dbCards = results
   }
 
@@ -422,6 +426,7 @@ module.exports = function(app) {
         },
         priority: card.priority,
         language: card.language,
+        occurences: card.occurences,
         type: 'dbsnippet'
       })
 
@@ -455,7 +460,8 @@ module.exports = function(app) {
           score -= 0.1 
         }
       } else if (snippetItem.type == 'dbsnippet') {
-        score += (snippetItem.priority ? 15 : 10) //15 is greater than 10 which is greater than 5 + the max of above
+        score += (snippetItem.priority ? 15 : 10)
+        score += snippetItem.occurences //15 is greater than 10 which is greater than 5 + the max of above
       }
       return score
     } 
