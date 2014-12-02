@@ -372,12 +372,7 @@ module.exports = function(app) {
           }
         }
       })
-    };
-
-    //get the card and save to locals indicating that it is a db card and if it has priority
-
-
-
+    }
   }
 
   //PHASE 4: reorder results and remove unwanted snippets
@@ -408,6 +403,7 @@ module.exports = function(app) {
           qnaSnippet: ''
         },
         priority: card.priority,
+        language: card.language,
         type: 'dbsnippet'
       })
 
