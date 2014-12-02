@@ -356,7 +356,7 @@ module.exports = function(app) {
     for (var i = tokens.length - 1; i >= 0; i--) {
       schema.models.keyword.findOne({where: {keyword: tokens[i]}}, function(err, keyword){
         if (keyword) {
-          schema.models.infocard.all({where: {keywordId:keyword.id} }, function(err, cards) {
+          keyword.infocards(function(err, cards) {
             for (var i = cards.length - 1; i >= 0; i--) {
               res.locals.dbCards.push(cards[i])
             }
@@ -377,7 +377,8 @@ module.exports = function(app) {
 
   //PHASE 4: reorder results and remove unwanted snippets
 
-  var reorderResults = function(req, res) {
+  var indexingAndFiltering = function(req, res) {
+    filterAndScoreDBCards(res)
     formartDbCardsAndAddToSnippets(res)
     reIndexResults(res)
     removeUnwantedSnippets(res)
@@ -387,6 +388,23 @@ module.exports = function(app) {
     console.log('-----------------------------')
     //end profiling
     res.render('search/index', res.locals )
+  }
+
+  var filterAndScoreDBCards = function(res) {
+    console.log(res.locals.dbCards)
+    var results = res.locals.dbCards.sort(function(a, b){
+      return b.id - a.id
+    })
+    results[results.length-1].occurences = 1
+    for (var i = results.length - 2; i >= 0; i--) {
+      if (results[i].id == results[i+1].id) {
+        results[i].occurences = 1 + results[i+1].occurences
+        results.splice(i+1, 1)
+      } else {
+        results[i].occurences = 1        
+      }
+    }
+    res.locals.dbCards = results
   }
 
   var formartDbCardsAndAddToSnippets = function(res) {
@@ -446,7 +464,7 @@ module.exports = function(app) {
     })
   }
 
-  return [getBossResults, getSnippets, getCardsFromDB, reorderResults]
+  return [getBossResults, getSnippets, getCardsFromDB, indexingAndFiltering]
 
 }
 

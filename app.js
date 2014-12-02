@@ -1,4 +1,4 @@
-var newrelic = require('newrelic')
+
 var express = require('express')
 var path = require('path')
 var http = require('http')
@@ -21,6 +21,7 @@ if (process.env.NODE_ENV == 'development') {
     database: 'codesearch'
   })
 } else {
+  var newrelic = require('newrelic')
   schema = new Schema('postgres', {
     url: process.env.DATABASE_URL 
   })  
