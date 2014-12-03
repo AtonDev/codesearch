@@ -5,5 +5,8 @@
     .col-9
       form.shadow#searchForm(action="/s", method="get", role="form")
         .inputs
-          input#searchBox(name="q", type="text", autofocus="true", value="#{userQuery? userQuery:''}", placeholder="e.g. 'python new list'")
+          input#searchBox(name="q", type="text", autofocus="true", value="#{userQuery? userQuery:''}", placeholder="search syntax")
           button#searchButton(type="submit")
+  .row
+    .col-12
+      p.tip(style="margin-top:15px;") Hey folks. For now, python only. Usefull? Shall we add support for other languages?

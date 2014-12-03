@@ -391,24 +391,26 @@ module.exports = function(app) {
   }
 
   var filterAndScoreDBCards = function(res) {
-    var results = res.locals.dbCards.sort(function(a, b){
-      return b.id - a.id
-    })
-    results[results.length-1].occurences = 1
-    for (var i = results.length - 2; i >= 0; i--) {
-      if (results[i].id == results[i+1].id) {
-        results[i].occurences = 1 + results[i+1].occurences
-        results.splice(i+1, 1)
-      } else {
-        results[i].occurences = 1        
+    if (res.locals.dbCards.length > 0) {
+      var results = res.locals.dbCards.sort(function(a, b){
+        return b.id - a.id
+      })
+      results[results.length-1].occurences = 1
+      for (var i = results.length - 2; i >= 0; i--) {
+        if (results[i].id == results[i+1].id) {
+          results[i].occurences = 1 + results[i+1].occurences
+          results.splice(i+1, 1)
+        } else {
+          results[i].occurences = 1        
+        }
       }
-    }
 
-    results.sort(function(a, b) {
-      return b.occurences - a.occurences
-    })
-    results = results.slice(0, 3)
-    res.locals.dbCards = results
+      results.sort(function(a, b) {
+        return b.occurences - a.occurences
+      })
+      results = results.slice(0, 3)
+      res.locals.dbCards = results
+    }
   }
 
   var formartDbCardsAndAddToSnippets = function(res) {
