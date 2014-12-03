@@ -1,0 +1,20 @@
+p.tip
+  | example queries: 
+  span#suggestions-rotate(style='vertical-align:top;white-space: nowrap;')
+
+script.
+  var arr = ['new list', 'import', 'map', 'list comprehension', 'find', 'from import', 'while', 'append to list', 'split lines'],
+    i = Math.floor((Math.random() * arr.length)), // Start Index
+    len = arr.length,
+    $el = $('#suggestions-rotate'),
+    $temp = $('<span />'); // Helper - Will measure Text width
+
+  $temp.hide().appendTo( $el.parent() ); // Setup Helper
+
+  (function loop() {
+    var w = $temp.text( arr[i%=len] ).width(); // set text + get width
+    $el.fadeTo(600,0).animate({width: w}, 300, function(){
+      $(this).text( arr[i++] ).fadeTo(600, 1);
+    });
+    setTimeout(loop, 3000);
+  }());
