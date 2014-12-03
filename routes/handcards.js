@@ -8,7 +8,7 @@ module.exports = function(app) {
         var counter = 0
         if (err) {
           
-          consle.error(err.stack)
+          console.error(err.stack)
           res.end()
         }
 
