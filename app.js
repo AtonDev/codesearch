@@ -101,7 +101,7 @@ router.post('/feedback', function(req, res) {
   };
 
   HC.postMessage(params, function(data) {
-    req.end()
+    res.end()
   });
 })
 
