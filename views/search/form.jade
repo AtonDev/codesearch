@@ -3,7 +3,7 @@
     .col-3
       img#logo(src="/img/two-keys.png")
     .col-9
-      form.shadow#searchForm(action="/s", method="get", role="form")
+      form.shadow#searchForm(action="/s", method="get", role="form", onSubmit="ga('send', 'event', 'button', 'click', 'search')")
         .inputs
           input#searchBox(name="q", type="text", autofocus="true", value="#{userQuery? userQuery:''}", placeholder="search syntax")
           button#searchButton(type="submit")
