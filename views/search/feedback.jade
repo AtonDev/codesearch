@@ -1,5 +1,5 @@
 button.btn-feedback(type='button', data-toggle='modal', data-target='#feedbackModal')
-  | How can we make you happier?
+  | What can we do to make you happier?
 
 #feedbackModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='feedbackModalLabel', aria-hidden='true')
   .modal-dialog
@@ -7,11 +7,11 @@ button.btn-feedback(type='button', data-toggle='modal', data-target='#feedbackMo
       .modal-header
         button.close(type='button', data-dismiss='modal')
           span(aria-hidden='true') ×
-        h4#feedbackModalLabel.modal-title  What's wrong? Tell me about it...
+        h4#feedbackModalLabel.modal-title  What's wrong/what can we do better? tell us about it..
       .modal-body
         form.feedback-form(action="/feedback", method="post", role="form")
           textarea.form-control#focus(type='text', autofocus="true", name="msg")
-          input.btn-submit(type='submit', value="Smile and submit")
+          input.btn-submit(type='submit', value="Smile and Submit")
 script.
   $('#feedbackModal').on('shown.bs.modal', function() {
     $(this).find('#focus').focus();
