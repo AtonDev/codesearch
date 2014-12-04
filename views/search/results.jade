@@ -6,7 +6,7 @@ mixin code(language, snippet)
       if snippets
         each result, index in snippets
           //=JSON.stringify(result)
-          div(onclick="location.href='#{result.clickurl}'").result
+          div(onclick="window.open('#{result.clickurl}', '_blank')").result
             if result.type == 'snippet' || result.type == 'dbsnippet' 
               if result.info.description != ''
                 p.infotext= result.info.description 
