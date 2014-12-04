@@ -6,8 +6,10 @@ mixin code(language, snippet)
       if snippets
         each result, index in snippets
           //=JSON.stringify(result)
-          div(onclick="window.open('#{result.clickurl}', '_blank')").result
+          .result
             if result.type == 'snippet' || result.type == 'dbsnippet' 
+              if result.clickurl
+                a.dispurl(href="#{result.clickurl}")!= result.dispurl
               if result.info.description != ''
                 p.infotext= result.info.description 
               if result.info.syntax != ''
@@ -28,8 +30,7 @@ mixin code(language, snippet)
                 pre.snippet
                   code= result.info.qnaSnippet
             else if result.type == 'normal'
-              h2.title !{result.title}
-              p.dispurl !{result.dispurl}
+              a.title(href="#{result.clickurl}", target="__blank") !{result.title}
               p.abstract !{result.abstract}
 
         
