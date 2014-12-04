@@ -11,7 +11,13 @@ block content
     hljs.initHighlightingOnLoad()
   .search
     include form
-    include suggestions
+    .container
+      .row
+        .col-6
+          include share
+        .col-6
+          include suggestions
+    
     hr 
     include feedback
     include results
