@@ -168,7 +168,7 @@ module.exports = function(app) {
           if (info !== null) {
             var snippetItem = {
               clickurl: url,
-              dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+              dispurl: res.locals.bossdata[index].dispurl,
               info: info,
               type: 'snippet'
             }
@@ -176,7 +176,7 @@ module.exports = function(app) {
           } else {
             var item = {
               clickurl: url,
-              dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+              dispurl: res.locals.bossdata[index].dispurl,
               abstract: res.locals.bossdata[index].abstract,
               title: res.locals.bossdata[index].title,
               type: 'normal'
@@ -227,12 +227,6 @@ module.exports = function(app) {
       console.error(err.stack)
       console.log('**END*********************')
     }
-  }
-
-
-
-  var getDispUrl = function(dispurl) {
-    return dispurl
   }
 
 
@@ -378,6 +372,7 @@ module.exports = function(app) {
     }
   }
 
+
   //PHASE 4: reorder results and remove unwanted snippets
 
   var indexingAndFiltering = function(req, res) {
@@ -421,7 +416,7 @@ module.exports = function(app) {
       var card = res.locals.dbCards[i]
       res.locals.snippets.push({
         clickurl: card.sourceURL,
-        dispurl: 'python.org',
+        dispurl: getDispUrl(card.sourceURL),
         info: {
           syntax: card.syntax,
           example: card.example,
@@ -436,6 +431,13 @@ module.exports = function(app) {
       })
 
     }
+  }
+
+
+  var getDispUrl = function(url) {
+    var matches = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+    var domain = matches && matches[1]; 
+    return domain
   }
 
 
