@@ -70,8 +70,6 @@ module.exports = function(app) {
     cbCount = 0
 
     ybClient.searchWeb(req.query.q, options, function(err,dataFound,response) {
-      console.log(err)
-      console.log(req.query.q)
       if (!err) {
         data1 = JSON.parse(dataFound).bossresponse.web.results || []
         removeUnwantedURLs(data1)
@@ -117,7 +115,6 @@ module.exports = function(app) {
     query = query.replace(/[^a-z0-9\s]/gi, ' ')
     query = query.trim()
     query = query.split(/\s+/).sort().join(" ")
-    console.log(query)
     return query
   }
 
