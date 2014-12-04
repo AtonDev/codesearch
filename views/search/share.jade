@@ -1,16 +1,16 @@
 #share-buttons
   // Facebook
-  a(href='http://www.facebook.com/sharer.php?u=http://alts.io/', target='_blank')
+  a(onCLick="ga('send', 'event', 'share', 'click', 'facebook')" ,href='http://www.facebook.com/sharer.php?u=http://alts.io/?utm_source=facebook&utm_medium=from_site_referal&utm_campaign=general', target='_blank')
     img(src='/img/somacro/facebook.png', alt='Facebook')
   // Twitter
-  a(href='http://twitter.com/share?url=http://alts.io/&text=Nice! A search engine for python syntax&hashtags=alts', target='_blank')
+  a(onCLick="ga('send', 'event', 'share', 'click', 'twitter')" ,href='http://twitter.com/share?url=http://alts.io/?utm_source=twitter&utm_medium=from_site_referal&utm_campaign=general&text=Nice! A search engine for python syntax&hashtags=alts', target='_blank')
     img(src='/img/somacro/twitter.png', alt='Twitter')
   // Google+
-  a(href='https://plus.google.com/share?url=http://alts.io/', target='_blank')
+  a(onCLick="ga('send', 'event', 'share', 'click', 'google+')" ,href='https://plus.google.com/share?url=http://alts.io/?utm_source=google&utm_medium=from_site_referal&utm_campaign=general', target='_blank')
     img(src='/img/somacro/google.png', alt='Google')
   // Reddit
-  a(href='http://reddit.com/submit?url=http://alts.io/&title=A search engine for python syntax', target='_blank')
+  a(onCLick="ga('send', 'event', 'share', 'click', 'reddit')" ,href='http://reddit.com/submit?url=http://alts.io/?utm_source=reddit&utm_medium=from_site_referal&utm_campaign=general&title=A search engine for python syntax', target='_blank')
     img(src='/img/somacro/reddit.png', alt='Reddit')
   // Email
-  a(href='mailto:?Subject=A search engine for python&Body=I%20saw%20this%20and%20thought%20of%20you!%20 http://alts.io/')
+  a(onCLick="ga('send', 'event', 'share', 'click', 'email')" ,href='mailto:?Subject=A search engine for python&Body=I%20saw%20this%20and%20thought%20of%20you!%20 http://alts.io/?utm_source=email&utm_medium=from_site_referal&utm_campaign=general')
     img(src='/img/somacro/email.png', alt='Email')
