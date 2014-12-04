@@ -70,22 +70,26 @@ module.exports = function(app) {
     cbCount = 0
 
     ybClient.searchWeb(req.query.q, options, function(err,dataFound,response) {
-      data1 = JSON.parse(dataFound).bossresponse.web.results || []
-      removeUnwantedURLs(data1)
-      cbCount += 1
-      if (data1.length > 9) {
-        cbCount -= 1
-        res.locals.bossdata = data1
-        //profiling
-        gate('getBossResults - specific sites only', res)
-        //end profiling
-        next()
-      } else if (cbCount == 2) {
-        res.locals.bossdata = data1.concat(data2)
-        //profiling
-        gate('getBossResults - specific sites + general web', res)
-        //end profiling
-        next()
+      console.log(err)
+      console.log(req.query.q)
+      if (!err) {
+        data1 = JSON.parse(dataFound).bossresponse.web.results || []
+        removeUnwantedURLs(data1)
+        cbCount += 1
+        if (data1.length > 9) {
+          cbCount -= 1
+          res.locals.bossdata = data1
+          //profiling
+          gate('getBossResults - specific sites only', res)
+          //end profiling
+          next()
+        } else if (cbCount == 2) {
+          res.locals.bossdata = data1.concat(data2)
+          //profiling
+          gate('getBossResults - specific sites + general web', res)
+          //end profiling
+          next()
+        }
       }
     })
 
@@ -108,13 +112,15 @@ module.exports = function(app) {
    *  @returns string the sanitized query to be used for the boss api call.
   */
   var sanitizeQuery = function(query) {
-    console.log(query)
     query = (query.indexOf('python') > -1) ? query : query + ' python'
     query = query.toLowerCase()
+    query = query.replace(/[^a-z0-9\s]/gi, ' ')
     query = query.trim()
     query = query.split(/\s+/).sort().join(" ")
+    console.log(query)
     return query
   }
+
 
 
   // PHASE 2: extract info from each url + get info from database
