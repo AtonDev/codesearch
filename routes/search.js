@@ -406,7 +406,12 @@ module.exports = function(app) {
       results.sort(function(a, b) {
         return b.occurences - a.occurences
       })
-      results = results.slice(0, 3)
+      if (results[0].occurences > 1) {
+        results = results.slice(0, 2)
+      } else {
+        results = results.slice(0, 3)
+      }
+      
       res.locals.dbCards = results
     }
   }
