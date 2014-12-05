@@ -75,7 +75,11 @@ router.get('/', function(req, res){
 })
 
 // SEARCH
-router.get('/s', routes.search)
+router.get('/s', routes.search.s)
+
+
+// API
+router.get('/api/s', routes.search.api)
 
 
 // POPULATE DB

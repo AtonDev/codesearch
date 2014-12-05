@@ -168,7 +168,7 @@ module.exports = function(app) {
           if (info !== null) {
             var snippetItem = {
               clickurl: url,
-              dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+              dispurl: res.locals.bossdata[index].dispurl,
               info: info,
               type: 'snippet'
             }
@@ -176,7 +176,7 @@ module.exports = function(app) {
           } else {
             var item = {
               clickurl: url,
-              dispurl: getDispUrl(res.locals.bossdata[index].dispurl),
+              dispurl: res.locals.bossdata[index].dispurl,
               abstract: res.locals.bossdata[index].abstract,
               title: res.locals.bossdata[index].title,
               type: 'normal'
@@ -227,12 +227,6 @@ module.exports = function(app) {
       console.error(err.stack)
       console.log('**END*********************')
     }
-  }
-
-
-
-  var getDispUrl = function(dispurl) {
-    return dispurl
   }
 
 
@@ -378,9 +372,10 @@ module.exports = function(app) {
     }
   }
 
+
   //PHASE 4: reorder results and remove unwanted snippets
 
-  var indexingAndFiltering = function(req, res) {
+  var indexingAndFiltering = function(req, res, next) {
     filterAndScoreDBCards(res)
     formartDbCardsAndAddToSnippets(res)
     reIndexResults(res)
@@ -390,7 +385,7 @@ module.exports = function(app) {
     gate('endpoint', res)
     console.log('-----------------------------')
     //end profiling
-    res.render('search/index', res.locals )
+    next()
   }
 
   var filterAndScoreDBCards = function(res) {
@@ -411,7 +406,12 @@ module.exports = function(app) {
       results.sort(function(a, b) {
         return b.occurences - a.occurences
       })
-      results = results.slice(0, 3)
+      if (results[0].occurences > 1) {
+        results = results.slice(0, 2)
+      } else {
+        results = results.slice(0, 3)
+      }
+      
       res.locals.dbCards = results
     }
   }
@@ -421,7 +421,7 @@ module.exports = function(app) {
       var card = res.locals.dbCards[i]
       res.locals.snippets.push({
         clickurl: card.sourceURL,
-        dispurl: 'python.org',
+        dispurl: getDispUrl(card.sourceURL),
         info: {
           syntax: card.syntax,
           example: card.example,
@@ -436,6 +436,13 @@ module.exports = function(app) {
       })
 
     }
+  }
+
+
+  var getDispUrl = function(url) {
+    var matches = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+    var domain = matches && matches[1]; 
+    return domain
   }
 
 
@@ -475,7 +482,19 @@ module.exports = function(app) {
     })
   }
 
-  return [getBossResults, getSnippets, getCardsFromDB, indexingAndFiltering]
+  var renderSite = function(req, res) {
+    res.render('search/index', res.locals )
+  }
+
+  var returnJSON = function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(res.locals.snippets))
+  }
+
+  return {
+          s: [getBossResults, getSnippets, getCardsFromDB, indexingAndFiltering, renderSite],
+          api: [getBossResults, getSnippets, getCardsFromDB, indexingAndFiltering, returnJSON]
+        }
 
 }
 
