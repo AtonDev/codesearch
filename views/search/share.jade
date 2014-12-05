@@ -1,16 +1,24 @@
 #share-buttons
   // Facebook
-  a(onCLick="ga('send', 'event', 'share', 'click', 'facebook')" ,href='http://www.facebook.com/sharer.php?u=http://alts.io/?utm_source=facebook&utm_medium=from_site_referal&utm_campaign=general', target='_blank')
+  a(id='share-facebook',onCLick="ga('send', 'event', 'share', 'click', 'facebook')", target='_blank')
     img(src='/img/somacro/facebook.png', alt='Facebook')
   // Twitter
-  a(onCLick="ga('send', 'event', 'share', 'click', 'twitter')" ,href='http://twitter.com/share?url=http://alts.io/?utm_source=twitter&utm_medium=from_site_referal&utm_campaign=general&text=Nice! A search engine for python syntax&hashtags=alts,python,search,syntax,code,programming', target='_blank')
+  a(id='share-twitter', onCLick="ga('send', 'event', 'share', 'click', 'twitter')" , target='_blank')
     img(src='/img/somacro/twitter.png', alt='Twitter')
   // Google+
-  a(onCLick="ga('send', 'event', 'share', 'click', 'google+')" ,href='https://plus.google.com/share?url=http://alts.io/?utm_source=google&utm_medium=from_site_referal&utm_campaign=general', target='_blank')
+  a(id='share-googleplus', onCLick="ga('send', 'event', 'share', 'click', 'google+')" , target='_blank')
     img(src='/img/somacro/google.png', alt='Google')
   // Reddit
-  a(onCLick="ga('send', 'event', 'share', 'click', 'reddit')" ,href='http://reddit.com/submit?url=http://alts.io/?utm_source=reddit&utm_medium=from_site_referal&utm_campaign=general&title=A search engine for python syntax', target='_blank')
+  a(id='share-reddit', onCLick="ga('send', 'event', 'share', 'click', 'reddit')", target='_blank')
     img(src='/img/somacro/reddit.png', alt='Reddit')
   // Email
-  a(onCLick="ga('send', 'event', 'share', 'click', 'email')" ,href='mailto:?Subject=A search engine for python&Body=I%20saw%20this%20and%20thought%20of%20you!%20 http://alts.io/?utm_source=email&utm_medium=from_site_referal&utm_campaign=general')
+  a(id='share-email', onCLick="ga('send', 'event', 'share', 'click', 'email')")
     img(src='/img/somacro/email.png', alt='Email')
+script.
+  $( document ).ready(function() {
+    $("#share-facebook").attr('href', 'http://www.facebook.com/sharer.php?u=http://alts.io' + window.location.pathname + '?utm_source=facebook&utm_medium=from_site_referal&utm_campaign=general')
+    $("#share-twitter").attr('href', 'http://twitter.com/share?url=http://alts.io' + window.location.pathname + '?utm_source=twitter&utm_medium=from_site_referal&utm_campaign=general')
+    $("#share-googleplus").attr('href', 'https://plus.google.com/share?url=http://alts.io' + window.location.pathname + '?utm_source=google&utm_medium=from_site_referal&utm_campaign=general')
+    $("#share-reddit").attr('href', 'http://reddit.com/submit?url=http://alts.io' + window.location.pathname + '?utm_source=reddit&utm_medium=from_site_referal&utm_campaign=general')
+    $("#share-email").attr('href', 'mailto:?Subject=A search engine for python&Body=I%20saw%20this%20and%20thought%20of%20you!%20 http://alts.io' + window.location.pathname + '?utm_source=email&utm_medium=from_site_referal&utm_campaign=general')
+  });
