@@ -374,6 +374,10 @@ module.exports = function(app) {
     formartDbCardsAndAddToSnippets(res)
     reIndexResults(res)
     removeUnwantedSnippets(res)
+    for (var i = res.locals.snippets.length - 1; i >= 0; i--) {
+      delete res.locals.snippets[i]['occurences']
+      delete res.locals.snippets[i]['priority']
+    };
     //profiling
     printParallel(res)
     gate('endpoint', res)
@@ -481,7 +485,7 @@ module.exports = function(app) {
   }
 
   var returnJSON = function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify(res.locals.snippets))
   }
 
