@@ -131,15 +131,9 @@ module.exports = function(app) {
 
     data = removeDuplicateElement(data)
     removeUnwantedURLs(data)
-
-
-
-
     //profiling
     startParallel(res)
     //end profiling
-
-
 
     for (var i = 0; i < data.length; i++) {
       getSnippet(data[i].clickurl, i, res, next, data.length) 
